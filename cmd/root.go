@@ -8,10 +8,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "brokli",
+	Use:     "brokli",
 	Version: "0.1.0",
-	Short: "TODO: Add a short description here",
-	Long: `TODO: Add a longer description here`,
+	Short:   "TODO: Add a short description here",
+	Long:    `TODO: Add a longer description here`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// If no subcommand is provided, show help
 		cmd.Help()

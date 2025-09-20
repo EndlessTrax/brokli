@@ -439,4 +439,3 @@ func TestNewAnchorTag(t *testing.T) {
 		}
 	})
 }
-

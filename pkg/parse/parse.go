@@ -72,4 +72,3 @@ func ParseHTML(b []byte) (*html.Node, error) {
 	}
 	return doc, nil
 }
-
