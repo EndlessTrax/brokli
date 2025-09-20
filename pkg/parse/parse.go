@@ -73,7 +73,7 @@ func ParseHTML(b []byte) (*html.Node, error) {
 		return nil, err
 	}
 	return doc, nil
-}
+
 
 // XML structures for sitemap parsing
 type XMLSitemap struct {
@@ -114,4 +114,3 @@ func GetSitemapResults(sitemapData *XMLSitemap, sourceUrl string) t.SitemapResul
 
 	return sitemapResults
 }
-

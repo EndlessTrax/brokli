@@ -325,7 +325,6 @@ func TestResolveAbsoluteUrl(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
-
 		expected := "http://other.com/path"
 		if result.String() != expected {
 			t.Errorf("Expected '%s', got '%s'", expected, result.String())
@@ -585,4 +584,3 @@ func TestSitemapUrlGetHttpStatus(t *testing.T) {
 		}
 	})
 }
-
