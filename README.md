@@ -65,3 +65,8 @@ Check a URL:
 ```bash
 ./brokli check url https://example.com
 ```
+
+Check a sitemap:
+```bash
+./brokli check sitemap https://example.com/sitemap.xml
+```

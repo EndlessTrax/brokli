@@ -2,6 +2,7 @@ package parse
 
 import (
 	"bytes"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -72,4 +73,44 @@ func ParseHTML(b []byte) (*html.Node, error) {
 		return nil, err
 	}
 	return doc, nil
+}
+
+// XML structures for sitemap parsing
+type XMLSitemap struct {
+	XMLName xml.Name `xml:"urlset"`
+	URLs    []XMLURL `xml:"url"`
+}
+
+type XMLURL struct {
+	Loc        string `xml:"loc"`
+	LastMod    string `xml:"lastmod,omitempty"`
+	ChangeFreq string `xml:"changefreq,omitempty"`
+	Priority   string `xml:"priority,omitempty"`
+}
+
+// ParseSitemap parses the given byte slice into sitemap data
+func ParseSitemap(b []byte) (*XMLSitemap, error) {
+	var sitemap XMLSitemap
+	err := xml.Unmarshal(b, &sitemap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse sitemap XML: %w", err)
+	}
+	return &sitemap, nil
+}
+
+// GetSitemapResults extracts all URLs from the provided sitemap XML and returns them as SitemapResults
+func GetSitemapResults(sitemapData *XMLSitemap, sourceUrl string) t.SitemapResults {
+	var sitemapResults t.SitemapResults
+	sitemapResults.SourceUrl = sourceUrl
+
+	for _, xmlUrl := range sitemapData.URLs {
+		sitemapUrl, err := t.NewSitemapUrl(xmlUrl.Loc, xmlUrl.LastMod, xmlUrl.ChangeFreq, xmlUrl.Priority)
+		if err != nil {
+			fmt.Printf("Skipping URL due to error: %v\n", err)
+			continue
+		}
+		sitemapResults.Urls = append(sitemapResults.Urls, sitemapUrl)
+	}
+
+	return sitemapResults
 }
