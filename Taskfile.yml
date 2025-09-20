@@ -1,0 +1,175 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  BINARY_NAME: brokli
+  MAIN_PACKAGE_PATH: .
+  COVERAGE_FILE: coverage.out
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmd: task --list
+
+  # Dependency Management
+  deps:
+    desc: "Download and tidy Go module dependencies"
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  # Testing
+  test:
+    desc: "Run all unit tests"
+    cmd: go test ./...
+
+  test-verbose:
+    desc: "Run all unit tests with verbose output"
+    cmd: go test -v ./...
+
+  test-coverage:
+    desc: "Run tests with coverage and race detection"
+    cmds:
+      - go test -v -race -coverprofile={{.COVERAGE_FILE}} ./...
+      - go tool cover -html={{.COVERAGE_FILE}} -o coverage.html
+    generates:
+      - "{{.COVERAGE_FILE}}"
+      - coverage.html
+
+  test-coverage-report:
+    desc: "Show test coverage report"
+    deps: [test-coverage]
+    cmd: go tool cover -func={{.COVERAGE_FILE}}
+
+  # Code Quality
+  fmt:
+    desc: "Format all Go code"
+    cmd: go fmt ./...
+
+  fmt-check:
+    desc: "Check if Go code is properly formatted"
+    cmd: |
+      if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+        echo "The following files are not properly formatted:"
+        gofmt -s -l .
+        echo ""
+        echo "Please run 'task fmt' to fix formatting issues."
+        exit 1
+      fi
+      echo "All files are properly formatted."
+
+  lint:
+    desc: "Run golangci-lint (requires golangci-lint to be installed)"
+    cmd: |
+      if command -v golangci-lint >/dev/null 2>&1; then
+        golangci-lint run ./...
+      elif [ -f ~/go/bin/golangci-lint ]; then
+        ~/go/bin/golangci-lint run ./...
+      else
+        echo "golangci-lint is not installed. Install it with:"
+        echo "  task lint-install"
+        echo "or visit: https://golangci-lint.run/usage/install/"
+        exit 1
+      fi
+
+  lint-install:
+    desc: "Install golangci-lint"
+    cmd: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+  # Building
+  build:
+    desc: "Build the application"
+    cmd: go build -o {{.BINARY_NAME}} {{.MAIN_PACKAGE_PATH}}
+    generates:
+      - "{{.BINARY_NAME}}"
+
+  build-race:
+    desc: "Build the application with race detection"
+    cmd: go build -race -o {{.BINARY_NAME}} {{.MAIN_PACKAGE_PATH}}
+    generates:
+      - "{{.BINARY_NAME}}"
+
+  install:
+    desc: "Install the application to $GOPATH/bin"
+    cmd: go install {{.MAIN_PACKAGE_PATH}}
+
+  # Running
+  run:
+    desc: "Run the application (show help)"
+    deps: [build]
+    cmd: ./{{.BINARY_NAME}}
+
+  run-version:
+    desc: "Show application version"
+    deps: [build]
+    cmd: ./{{.BINARY_NAME}} version
+
+  run-check-url:
+    desc: "Run check url command with example URL"
+    deps: [build]
+    cmd: ./{{.BINARY_NAME}} check url https://example.com
+
+  # Maintenance
+  clean:
+    desc: "Clean build artifacts and temporary files"
+    cmds:
+      - rm -f {{.BINARY_NAME}}
+      - rm -f {{.COVERAGE_FILE}}
+      - rm -f coverage.html
+      - go clean -cache
+      - go clean -testcache
+
+  # CI/CD tasks (matches GitHub Actions)
+  ci-test:
+    desc: "Run tests as in CI (with coverage and race detection)"
+    cmd: go test -v -race -coverprofile={{.COVERAGE_FILE}} ./...
+
+  ci-fmt-check:
+    desc: "Check formatting as in CI"
+    cmd: |
+      if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+        echo "The following files are not properly formatted:"
+        gofmt -s -l .
+        echo ""
+        echo "Please run 'go fmt ./...' to fix formatting issues."
+        exit 1
+      fi
+
+  ci-lint:
+    desc: "Run linting as in CI"
+    cmd: |
+      if command -v golangci-lint >/dev/null 2>&1; then
+        golangci-lint run --timeout=5m ./...
+      elif [ -f ~/go/bin/golangci-lint ]; then
+        ~/go/bin/golangci-lint run --timeout=5m ./...
+      else
+        echo "golangci-lint is not installed. Skipping lint check."
+        echo "Install it with: task lint-install"
+      fi
+
+  ci:
+    desc: "Run all CI checks locally"
+    deps: [deps]
+    cmds:
+      - task: ci-test
+      - task: ci-fmt-check
+      - task: ci-lint
+
+  # Development workflow
+  dev:
+    desc: "Complete development workflow: deps, test, fmt, build"
+    cmds:
+      - task: deps
+      - task: test
+      - task: fmt
+      - task: build
+
+  all:
+    desc: "Run comprehensive checks: deps, test-coverage, fmt-check, lint, build"
+    cmds:
+      - task: deps
+      - task: test-coverage
+      - task: fmt-check
+      - task: lint
+      - task: build
