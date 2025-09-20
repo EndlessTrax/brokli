@@ -432,9 +432,7 @@ func TestParseSitemap(t *testing.T) {
 
 		if sitemap == nil {
 			t.Error("Expected non-nil sitemap")
-		}
-
-		if len(sitemap.URLs) != 2 {
+		} else if len(sitemap.URLs) != 2 {
 			t.Errorf("Expected 2 URLs in sitemap, got %d", len(sitemap.URLs))
 		}
 

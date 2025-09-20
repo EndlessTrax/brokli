@@ -472,7 +472,7 @@ func TestNewSitemapUrl(t *testing.T) {
 
 	t.Run("valid sitemap URL with minimal metadata", func(t *testing.T) {
 		urlStr := "https://www.example.com/about"
-		
+
 		sitemapUrl, err := NewSitemapUrl(urlStr, "", "", "")
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
@@ -514,7 +514,7 @@ func TestNewSitemapUrl(t *testing.T) {
 
 	t.Run("relative URL", func(t *testing.T) {
 		urlStr := "/about"
-		
+
 		sitemapUrl, err := NewSitemapUrl(urlStr, "", "", "")
 		if err != nil {
 			t.Errorf("Expected no error for relative URL, got %v", err)
