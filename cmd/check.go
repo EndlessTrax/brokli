@@ -20,7 +20,7 @@ var checkCmd = &cobra.Command{
 	Short: "TODO: Add a short description here",
 	Long:  `TODO: Add a longer description here`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		_ = cmd.Help()
 	},
 }
 
