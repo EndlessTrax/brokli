@@ -20,7 +20,7 @@ var checkCmd = &cobra.Command{
 	Short: "TODO: Add a short description here",
 	Long:  `TODO: Add a longer description here`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		_ = cmd.Help()
 	},
 }
 
@@ -32,7 +32,7 @@ var checkUrlCmd = &cobra.Command{
 		// Check if URL argument is provided
 		if len(args) < 1 {
 			fmt.Println("Error: URL argument is required")
-			cmd.Help()
+			_ = cmd.Help()
 			return
 		}
 
@@ -77,7 +77,7 @@ var checkSitemapCmd = &cobra.Command{
 		// Check if sitemap URL argument is provided
 		if len(args) < 1 {
 			fmt.Println("Error: sitemap URL argument is required")
-			cmd.Help()
+			_ = cmd.Help()
 			return
 		}
 

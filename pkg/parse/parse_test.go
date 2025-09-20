@@ -289,7 +289,7 @@ func TestGetHTML(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(testHTML))
+			_, _ = w.Write([]byte(testHTML))
 		}))
 		defer server.Close()
 
@@ -306,7 +306,7 @@ func TestGetHTML(t *testing.T) {
 	t.Run("HTTP error response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("Not Found"))
+			_, _ = w.Write([]byte("Not Found"))
 		}))
 		defer server.Close()
 
@@ -356,7 +356,7 @@ func TestIntegration(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(testHTML))
+			_, _ = w.Write([]byte(testHTML))
 		}))
 		defer server.Close()
 
@@ -620,7 +620,7 @@ func TestSitemapIntegration(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/xml")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(xmlContent))
+			_, _ = w.Write([]byte(xmlContent))
 		}))
 		defer server.Close()
 
