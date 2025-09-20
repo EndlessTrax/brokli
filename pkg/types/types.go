@@ -13,12 +13,25 @@ type PageResults struct {
 	SourceUrl string
 }
 
+type SitemapResults struct {
+	Urls      []SitemapUrl
+	SourceUrl string
+}
+
 type AnchorTag struct {
 	AbsoluteUrl url.URL
 	Attributes  map[string]string
 	RawTag      string
 	Status      int
 	Text        string
+}
+
+type SitemapUrl struct {
+	AbsoluteUrl url.URL
+	LastMod     string
+	ChangeFreq  string
+	Priority    string
+	Status      int
 }
 
 // extractAttributes parses HTML attributes from a node and returns them as a map
@@ -184,6 +197,47 @@ func (a *AnchorTag) GetHttpStatus() error {
 	defer resp.Body.Close()
 
 	a.Status = resp.StatusCode
+
+	return nil
+}
+
+// NewSitemapUrl creates a new SitemapUrl from the provided URL string and metadata
+func NewSitemapUrl(urlStr, lastMod, changeFreq, priority string) (SitemapUrl, error) {
+	if urlStr == "" {
+		return SitemapUrl{}, fmt.Errorf("URL string cannot be empty")
+	}
+
+	// Parse the URL
+	parsedUrl, err := url.Parse(urlStr)
+	if err != nil {
+		return SitemapUrl{}, fmt.Errorf("failed to parse URL '%s': %w", urlStr, err)
+	}
+
+	// Create and return the SitemapUrl
+	s := SitemapUrl{
+		AbsoluteUrl: *parsedUrl,
+		LastMod:     lastMod,
+		ChangeFreq:  changeFreq,
+		Priority:    priority,
+		Status:      -1, // Initialize to -1 (unknown)
+	}
+
+	return s, nil
+}
+
+// Gets the HTTP status code of the SitemapUrl
+func (s *SitemapUrl) GetHttpStatus() error {
+	if s.AbsoluteUrl.String() == "" {
+		return nil
+	}
+
+	resp, err := http.Head(s.AbsoluteUrl.String())
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	s.Status = resp.StatusCode
 
 	return nil
 }

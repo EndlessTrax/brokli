@@ -1,6 +1,8 @@
 package types
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"strings"
@@ -436,6 +438,150 @@ func TestNewAnchorTag(t *testing.T) {
 		}
 		if !strings.Contains(err.Error(), "tag cannot be nil") {
 			t.Errorf("Expected 'tag cannot be nil' error, got %v", err)
+		}
+	})
+}
+
+func TestNewSitemapUrl(t *testing.T) {
+	t.Run("valid sitemap URL with all metadata", func(t *testing.T) {
+		urlStr := "https://www.example.com/"
+		lastMod := "2023-01-01"
+		changeFreq := "daily"
+		priority := "1.0"
+
+		sitemapUrl, err := NewSitemapUrl(urlStr, lastMod, changeFreq, priority)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		if sitemapUrl.AbsoluteUrl.String() != urlStr {
+			t.Errorf("Expected AbsoluteUrl to be '%s', got '%s'", urlStr, sitemapUrl.AbsoluteUrl.String())
+		}
+		if sitemapUrl.LastMod != lastMod {
+			t.Errorf("Expected LastMod to be '%s', got '%s'", lastMod, sitemapUrl.LastMod)
+		}
+		if sitemapUrl.ChangeFreq != changeFreq {
+			t.Errorf("Expected ChangeFreq to be '%s', got '%s'", changeFreq, sitemapUrl.ChangeFreq)
+		}
+		if sitemapUrl.Priority != priority {
+			t.Errorf("Expected Priority to be '%s', got '%s'", priority, sitemapUrl.Priority)
+		}
+		if sitemapUrl.Status != -1 {
+			t.Errorf("Expected Status -1, got %d", sitemapUrl.Status)
+		}
+	})
+
+	t.Run("valid sitemap URL with minimal metadata", func(t *testing.T) {
+		urlStr := "https://www.example.com/about"
+		
+		sitemapUrl, err := NewSitemapUrl(urlStr, "", "", "")
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+
+		if sitemapUrl.AbsoluteUrl.String() != urlStr {
+			t.Errorf("Expected AbsoluteUrl to be '%s', got '%s'", urlStr, sitemapUrl.AbsoluteUrl.String())
+		}
+		if sitemapUrl.LastMod != "" {
+			t.Errorf("Expected empty LastMod, got '%s'", sitemapUrl.LastMod)
+		}
+		if sitemapUrl.ChangeFreq != "" {
+			t.Errorf("Expected empty ChangeFreq, got '%s'", sitemapUrl.ChangeFreq)
+		}
+		if sitemapUrl.Priority != "" {
+			t.Errorf("Expected empty Priority, got '%s'", sitemapUrl.Priority)
+		}
+	})
+
+	t.Run("empty URL string", func(t *testing.T) {
+		_, err := NewSitemapUrl("", "2023-01-01", "daily", "1.0")
+		if err == nil {
+			t.Error("Expected error for empty URL string")
+		}
+		if !strings.Contains(err.Error(), "URL string cannot be empty") {
+			t.Errorf("Expected 'URL string cannot be empty' error, got %v", err)
+		}
+	})
+
+	t.Run("invalid URL string", func(t *testing.T) {
+		_, err := NewSitemapUrl("://invalid-url", "2023-01-01", "daily", "1.0")
+		if err == nil {
+			t.Error("Expected error for invalid URL")
+		}
+		if !strings.Contains(err.Error(), "failed to parse URL") {
+			t.Errorf("Expected 'failed to parse URL' error, got %v", err)
+		}
+	})
+
+	t.Run("relative URL", func(t *testing.T) {
+		urlStr := "/about"
+		
+		sitemapUrl, err := NewSitemapUrl(urlStr, "", "", "")
+		if err != nil {
+			t.Errorf("Expected no error for relative URL, got %v", err)
+		}
+
+		if sitemapUrl.AbsoluteUrl.String() != urlStr {
+			t.Errorf("Expected AbsoluteUrl to be '%s', got '%s'", urlStr, sitemapUrl.AbsoluteUrl.String())
+		}
+	})
+}
+
+func TestSitemapUrlGetHttpStatus(t *testing.T) {
+	t.Run("successful HTTP request", func(t *testing.T) {
+		// Create a test server
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		sitemapUrl, err := NewSitemapUrl(server.URL, "", "", "")
+		if err != nil {
+			t.Errorf("Expected no error creating SitemapUrl, got %v", err)
+		}
+
+		err = sitemapUrl.GetHttpStatus()
+		if err != nil {
+			t.Errorf("Expected no error getting HTTP status, got %v", err)
+		}
+
+		if sitemapUrl.Status != http.StatusOK {
+			t.Errorf("Expected Status %d, got %d", http.StatusOK, sitemapUrl.Status)
+		}
+	})
+
+	t.Run("empty URL", func(t *testing.T) {
+		// Create SitemapUrl with empty URL by manipulating the struct directly
+		sitemapUrl := SitemapUrl{
+			AbsoluteUrl: url.URL{},
+			Status:      -1,
+		}
+
+		err := sitemapUrl.GetHttpStatus()
+		if err != nil {
+			t.Errorf("Expected no error for empty URL, got %v", err)
+		}
+
+		// Status should remain unchanged
+		if sitemapUrl.Status != -1 {
+			t.Errorf("Expected Status -1 for empty URL, got %d", sitemapUrl.Status)
+		}
+	})
+
+	t.Run("network error", func(t *testing.T) {
+		sitemapUrl, err := NewSitemapUrl("http://localhost:99999/nonexistent", "", "", "")
+		if err != nil {
+			t.Errorf("Expected no error creating SitemapUrl, got %v", err)
+		}
+
+		err = sitemapUrl.GetHttpStatus()
+		if err == nil {
+			t.Error("Expected error for network error")
+		}
+
+		// Status should remain unchanged on error
+		if sitemapUrl.Status != -1 {
+			t.Errorf("Expected Status -1 after error, got %d", sitemapUrl.Status)
 		}
 	})
 }

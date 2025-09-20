@@ -29,6 +29,13 @@ var checkUrlCmd = &cobra.Command{
 	Short: "Check a URL",
 	Long:  `Check a URL`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Check if URL argument is provided
+		if len(args) < 1 {
+			fmt.Println("Error: URL argument is required")
+			cmd.Help()
+			return
+		}
+
 		// Take the first argument and use it as the URL
 		urlStr := args[0]
 
@@ -67,6 +74,42 @@ var checkSitemapCmd = &cobra.Command{
 	Short: "Check a sitemap",
 	Long:  `Check a sitemap`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Check sitemap command ran")
+		// Check if sitemap URL argument is provided
+		if len(args) < 1 {
+			fmt.Println("Error: sitemap URL argument is required")
+			cmd.Help()
+			return
+		}
+
+		// Take the first argument and use it as the sitemap URL
+		sitemapUrl := args[0]
+
+		// Get sitemap XML content
+		xmlBytes, err := p.GetHTML(sitemapUrl) // Reuse GetHTML as it fetches any URL content
+		if err != nil {
+			fmt.Printf("Error fetching sitemap: %v\n", err)
+			return
+		}
+
+		// Parse sitemap XML
+		sitemap, err := p.ParseSitemap(xmlBytes)
+		if err != nil {
+			fmt.Printf("Error parsing sitemap: %v\n", err)
+			return
+		}
+
+		// Get sitemap results
+		results := p.GetSitemapResults(sitemap, sitemapUrl)
+		fmt.Printf("Found %d URLs in sitemap:\n", len(results.Urls))
+		for i, sitemapUrl := range results.Urls {
+			fmt.Printf("%d. %s", i+1, sitemapUrl.AbsoluteUrl.String())
+			if sitemapUrl.LastMod != "" {
+				fmt.Printf(" (last modified: %s)", sitemapUrl.LastMod)
+			}
+			if sitemapUrl.Priority != "" {
+				fmt.Printf(" (priority: %s)", sitemapUrl.Priority)
+			}
+			fmt.Println()
+		}
 	},
 }
