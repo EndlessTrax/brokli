@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Long:    `TODO: Add a longer description here`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// If no subcommand is provided, show help
-		cmd.Help()
+		_ = cmd.Help()
 	},
 }
 
