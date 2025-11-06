@@ -84,6 +84,50 @@ tasks:
     generates:
       - "{{.BINARY_NAME}}"
 
+  # Release (GoReleaser)
+  goreleaser-install:
+    desc: "Install GoReleaser CLI"
+    cmd: go install github.com/goreleaser/goreleaser/v2@latest
+
+  release-check:
+    desc: "Validate GoReleaser configuration"
+    cmds:
+      - |
+        if command -v goreleaser >/dev/null 2>&1; then
+          goreleaser check
+        elif [ -f ~/go/bin/goreleaser ]; then
+          ~/go/bin/goreleaser check
+        else
+          echo "GoReleaser not found. Install it with: task goreleaser-install";
+          exit 1;
+        fi
+
+  release-snapshot:
+    desc: "Build a local snapshot release (no publish)"
+    cmds:
+      - |
+        if command -v goreleaser >/dev/null 2>&1; then
+          goreleaser release --snapshot --clean
+        elif [ -f ~/go/bin/goreleaser ]; then
+          ~/go/bin/goreleaser release --snapshot --clean
+        else
+          echo "GoReleaser not found. Install it with: task goreleaser-install";
+          exit 1;
+        fi
+
+  release:
+    desc: "Run GoReleaser (publishes if GITHUB_TOKEN is set and tag is present)"
+    cmds:
+      - |
+        if command -v goreleaser >/dev/null 2>&1; then
+          goreleaser release --clean
+        elif [ -f ~/go/bin/goreleaser ]; then
+          ~/go/bin/goreleaser release --clean
+        else
+          echo "GoReleaser not found. Install it with: task goreleaser-install";
+          exit 1;
+        fi
+
   # Maintenance
   clean:
     desc: "Clean build artifacts and temporary files"
@@ -91,6 +135,7 @@ tasks:
       - rm -f {{.BINARY_NAME}}
       - rm -f {{.COVERAGE_FILE}}
       - rm -f coverage.html
+      - rm -rf dist
       - go clean -cache
       - go clean -testcache
 

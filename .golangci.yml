@@ -25,13 +25,13 @@ linters:
           - unparam
         path: _test\.go
     paths:
+      - third_party
+      - builtin
+      - examples
       - third_party$
       - builtin$
       - examples$
 formatters:
-  enable:
-    - gofmt
-    - goimports
   settings:
     gofmt:
       simplify: true
