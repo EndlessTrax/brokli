@@ -51,16 +51,14 @@ func isBrokenLink(status int) bool {
 	return status == -1 || status >= 400
 }
 
-var verbose bool
-
 func init() {
 	rootCmd.AddCommand(checkCmd)
 	checkCmd.AddCommand(checkUrlCmd)
 	checkCmd.AddCommand(checkSitemapCmd)
 
-	// Add verbose flag to both subcommands
-	checkUrlCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show all links, not just broken ones")
-	checkSitemapCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show all URLs, not just broken ones")
+	// Add verbose flag to both subcommands (each has its own flag instance)
+	checkUrlCmd.Flags().BoolP("verbose", "v", false, "Show all links, not just broken ones")
+	checkSitemapCmd.Flags().BoolP("verbose", "v", false, "Show all URLs, not just broken ones")
 }
 
 var checkCmd = &cobra.Command{
@@ -140,6 +138,9 @@ var checkUrlCmd = &cobra.Command{
 				brokenCount++
 			}
 		}
+
+		// Get verbose flag from command
+		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		// Display results based on verbose flag
 		if verbose {
@@ -244,6 +245,9 @@ var checkSitemapCmd = &cobra.Command{
 				brokenCount++
 			}
 		}
+
+		// Get verbose flag from command
+		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		// Display results based on verbose flag
 		if verbose {
