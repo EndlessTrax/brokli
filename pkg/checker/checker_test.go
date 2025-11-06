@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -70,9 +71,9 @@ func TestCheckLinks_Success(t *testing.T) {
 
 func TestCheckLinks_MultipleConcurrent(t *testing.T) {
 	// Create test server
-	requestCount := 0
+	var requestCount atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestCount++
+		requestCount.Add(1)
 		// Simulate some delay
 		time.Sleep(10 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
