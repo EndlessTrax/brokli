@@ -20,6 +20,9 @@ type Config struct {
 	UserAgent string
 	// MaxRedirects is the maximum number of redirects to follow (default: 10)
 	MaxRedirects int
+	// ProgressCallback is called after each link is checked (optional)
+	// Parameters: checked count, total count
+	ProgressCallback func(checked, total int)
 }
 
 // DefaultConfig returns a sensible default configuration
@@ -86,6 +89,11 @@ func CheckLinks(ctx context.Context, links []CheckableLink, config Config) error
 	jobs := make(chan CheckableLink, len(links))
 	results := make(chan error, len(links))
 
+	// Track progress if callback is provided
+	var progressMutex sync.Mutex
+	var checkedCount int
+	totalCount := len(links)
+
 	// Start worker pool
 	var wg sync.WaitGroup
 	numWorkers := config.MaxWorkers
@@ -110,11 +118,19 @@ func CheckLinks(ctx context.Context, links []CheckableLink, config Config) error
 		close(results)
 	}()
 
-	// Collect results
+	// Collect results and track progress
 	var errors []error
 	for err := range results {
 		if err != nil {
 			errors = append(errors, err)
+		}
+
+		// Update progress
+		if config.ProgressCallback != nil {
+			progressMutex.Lock()
+			checkedCount++
+			config.ProgressCallback(checkedCount, totalCount)
+			progressMutex.Unlock()
 		}
 	}
 

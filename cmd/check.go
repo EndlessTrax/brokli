@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/endlesstrax/brokli/pkg/checker"
@@ -25,6 +26,23 @@ func getStatusIcon(status int) string {
 		return "✗" // Error
 	}
 	return "?" // Unknown
+}
+
+// getColoredStatus returns a colored status code string
+func getColoredStatus(status int) string {
+	statusStr := fmt.Sprintf("[%d]", status)
+	if status == -1 {
+		return color.YellowString(statusStr)
+	} else if status >= 200 && status < 300 {
+		return color.GreenString(statusStr)
+	} else if status >= 300 && status < 400 {
+		return color.CyanString(statusStr)
+	} else if status >= 400 && status < 500 {
+		return color.RedString(statusStr)
+	} else if status >= 500 {
+		return color.New(color.FgRed, color.Bold).Sprint(statusStr)
+	}
+	return statusStr
 }
 
 // isBrokenLink returns true if the status code indicates a broken link
@@ -89,7 +107,6 @@ var checkUrlCmd = &cobra.Command{
 		fmt.Printf("Found %d links\n", len(results.Links))
 
 		// Check HTTP status for all links
-		fmt.Println("Checking link status...")
 		linkPointers := make([]*link.AnchorTag, len(results.Links))
 		for i := range results.Links {
 			linkPointers[i] = &results.Links[i]
@@ -97,23 +114,52 @@ var checkUrlCmd = &cobra.Command{
 
 		ctx := context.Background()
 		config := checker.DefaultConfig()
+
+		// Add progress callback
+		config.ProgressCallback = func(checked, total int) {
+			fmt.Printf("\rChecking links... %d/%d", checked, total)
+		}
+
 		err = checker.CheckAnchorTags(ctx, linkPointers, config)
+		fmt.Println() // New line after progress
+
 		if err != nil {
 			fmt.Printf("Warning: Some links could not be checked: %v\n", err)
 		}
 
-		// Display results
-		fmt.Println("\nResults:")
+		// Count broken links
 		brokenCount := 0
-		for i, linkPtr := range linkPointers {
-			statusIcon := getStatusIcon(linkPtr.Status)
-			fmt.Printf("%s %d. [%d] %s -> %s\n", statusIcon, i+1, linkPtr.Status, linkPtr.Text, linkPtr.AbsoluteUrl.String())
+		for _, linkPtr := range linkPointers {
 			if isBrokenLink(linkPtr.Status) {
 				brokenCount++
 			}
 		}
 
-		fmt.Printf("\nSummary: %d total links, %d broken\n", len(linkPointers), brokenCount)
+		// Display only broken links by default
+		if brokenCount > 0 {
+			fmt.Println("\nBroken Links:")
+			count := 1
+			for _, linkPtr := range linkPointers {
+				if isBrokenLink(linkPtr.Status) {
+					statusIcon := getStatusIcon(linkPtr.Status)
+					coloredStatus := getColoredStatus(linkPtr.Status)
+					fmt.Printf("%s %d. %s %s -> %s\n", statusIcon, count, coloredStatus, linkPtr.Text, linkPtr.AbsoluteUrl.String())
+					count++
+				}
+			}
+		} else {
+			color.Green("\n✓ All links are working!")
+		}
+
+		// Display summary
+		if brokenCount > 0 {
+			fmt.Printf("\n")
+			color.Red("Summary: %d broken links found out of %d total", brokenCount, len(linkPointers))
+		} else {
+			fmt.Printf("\n")
+			color.Green("Summary: All %d links are working", len(linkPointers))
+		}
+		fmt.Println()
 	},
 }
 
@@ -151,7 +197,6 @@ var checkSitemapCmd = &cobra.Command{
 		fmt.Printf("Found %d URLs in sitemap\n", len(results.Urls))
 
 		// Check HTTP status for all URLs
-		fmt.Println("Checking URL status...")
 		urlPointers := make([]*link.SitemapUrl, len(results.Urls))
 		for i := range results.Urls {
 			urlPointers[i] = &results.Urls[i]
@@ -159,29 +204,58 @@ var checkSitemapCmd = &cobra.Command{
 
 		ctx := context.Background()
 		config := checker.DefaultConfig()
+
+		// Add progress callback
+		config.ProgressCallback = func(checked, total int) {
+			fmt.Printf("\rChecking URLs... %d/%d", checked, total)
+		}
+
 		err = checker.CheckSitemapUrls(ctx, urlPointers, config)
+		fmt.Println() // New line after progress
+
 		if err != nil {
 			fmt.Printf("Warning: Some URLs could not be checked: %v\n", err)
 		}
 
-		// Display results
-		fmt.Println("\nResults:")
+		// Count broken URLs
 		brokenCount := 0
-		for i, urlPtr := range urlPointers {
-			statusIcon := getStatusIcon(urlPtr.Status)
-			fmt.Printf("%s %d. [%d] %s", statusIcon, i+1, urlPtr.Status, urlPtr.AbsoluteUrl.String())
-			if urlPtr.LastMod != "" {
-				fmt.Printf(" (modified: %s)", urlPtr.LastMod)
-			}
-			if urlPtr.Priority != "" {
-				fmt.Printf(" (priority: %s)", urlPtr.Priority)
-			}
-			fmt.Println()
+		for _, urlPtr := range urlPointers {
 			if isBrokenLink(urlPtr.Status) {
 				brokenCount++
 			}
 		}
 
-		fmt.Printf("\nSummary: %d total URLs, %d broken\n", len(urlPointers), brokenCount)
+		// Display only broken URLs by default
+		if brokenCount > 0 {
+			fmt.Println("\nBroken URLs:")
+			count := 1
+			for _, urlPtr := range urlPointers {
+				if isBrokenLink(urlPtr.Status) {
+					statusIcon := getStatusIcon(urlPtr.Status)
+					coloredStatus := getColoredStatus(urlPtr.Status)
+					fmt.Printf("%s %d. %s %s", statusIcon, count, coloredStatus, urlPtr.AbsoluteUrl.String())
+					if urlPtr.LastMod != "" {
+						fmt.Printf(" (modified: %s)", color.CyanString(urlPtr.LastMod))
+					}
+					if urlPtr.Priority != "" {
+						fmt.Printf(" (priority: %s)", color.YellowString(urlPtr.Priority))
+					}
+					fmt.Println()
+					count++
+				}
+			}
+		} else {
+			color.Green("\n✓ All URLs are working!")
+		}
+
+		// Display summary
+		if brokenCount > 0 {
+			fmt.Printf("\n")
+			color.Red("Summary: %d broken URLs found out of %d total", brokenCount, len(urlPointers))
+		} else {
+			fmt.Printf("\n")
+			color.Green("Summary: All %d URLs are working", len(urlPointers))
+		}
+		fmt.Println()
 	},
 }
