@@ -20,6 +20,11 @@ type Config struct {
 	UserAgent string
 	// MaxRedirects is the maximum number of redirects to follow (default: 10)
 	MaxRedirects int
+	// ProgressCallback is called after each link is checked (optional).
+	// The callback is invoked serially (not concurrently), so it's safe to
+	// perform I/O operations like fmt.Printf without additional synchronization.
+	// Parameters: checked count, total count
+	ProgressCallback func(checked, total int)
 }
 
 // DefaultConfig returns a sensible default configuration
@@ -110,11 +115,21 @@ func CheckLinks(ctx context.Context, links []CheckableLink, config Config) error
 		close(results)
 	}()
 
-	// Collect results
+	// Collect results and track progress
+	// Progress callback is invoked serially here (not concurrently) to avoid threading issues
 	var errors []error
+	checkedCount := 0
+	totalCount := len(links)
+
 	for err := range results {
 		if err != nil {
 			errors = append(errors, err)
+		}
+
+		// Update progress - callback is invoked serially, one at a time
+		checkedCount++
+		if config.ProgressCallback != nil {
+			config.ProgressCallback(checkedCount, totalCount)
 		}
 	}
 

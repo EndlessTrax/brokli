@@ -346,3 +346,68 @@ func TestCheckLinks_InvalidURL(t *testing.T) {
 		t.Errorf("Expected status -1 for failed request, got %d", tag.Status)
 	}
 }
+
+func TestCheckLinks_ProgressCallback(t *testing.T) {
+	// Create test server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate some processing time
+		time.Sleep(10 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	// Create test links
+	numLinks := 5
+	tags := make([]*link.AnchorTag, numLinks)
+	parsedURL, _ := url.Parse(server.URL)
+	for i := range tags {
+		tags[i] = &link.AnchorTag{
+			AbsoluteUrl: *parsedURL,
+			Status:      -1,
+		}
+	}
+
+	// Track progress callback invocations
+	var callbackInvocations []struct {
+		checked int
+		total   int
+	}
+
+	ctx := context.Background()
+	config := DefaultConfig()
+	config.MaxWorkers = 2
+	config.ProgressCallback = func(checked, total int) {
+		callbackInvocations = append(callbackInvocations, struct {
+			checked int
+			total   int
+		}{checked, total})
+	}
+
+	err := CheckAnchorTags(ctx, tags, config)
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+
+	// Verify callback was invoked correct number of times
+	if len(callbackInvocations) != numLinks {
+		t.Errorf("Expected callback to be invoked %d times, got %d", numLinks, len(callbackInvocations))
+	}
+
+	// Verify progress counts are accurate
+	for i, invocation := range callbackInvocations {
+		expectedChecked := i + 1
+		if invocation.checked != expectedChecked {
+			t.Errorf("Invocation %d: expected checked=%d, got %d", i, expectedChecked, invocation.checked)
+		}
+		if invocation.total != numLinks {
+			t.Errorf("Invocation %d: expected total=%d, got %d", i, numLinks, invocation.total)
+		}
+	}
+
+	// Verify final progress should be complete
+	lastInvocation := callbackInvocations[len(callbackInvocations)-1]
+	if lastInvocation.checked != lastInvocation.total {
+		t.Errorf("Expected final progress to be complete: checked=%d, total=%d",
+			lastInvocation.checked, lastInvocation.total)
+	}
+}
