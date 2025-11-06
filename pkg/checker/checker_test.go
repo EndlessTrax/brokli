@@ -157,7 +157,7 @@ func TestCheckLinks_DifferentStatusCodes(t *testing.T) {
 func TestCheckLinks_EmptyURL(t *testing.T) {
 	tag := &link.AnchorTag{
 		AbsoluteUrl: url.URL{},
-		Status:      100, // Set to non-default value
+		Status:      100, // Set to non-default value to verify it gets reset to -1 for empty URL
 	}
 
 	ctx := context.Background()
