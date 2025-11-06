@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Version is the version of Brokli. It can be set at build time via ldflags.
+// Version is the version of Brokli.
 var Version = "0.1.0"
 
 var rootCmd = &cobra.Command{
