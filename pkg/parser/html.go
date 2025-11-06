@@ -52,7 +52,6 @@ func findLinks(doc *html.Node) []*html.Node {
 		}
 	}
 	f(doc)
-	fmt.Println(links)
 	return links
 }
 
