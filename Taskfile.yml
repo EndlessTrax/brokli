@@ -75,7 +75,7 @@ tasks:
 
   lint-install:
     desc: "Install golangci-lint"
-    cmd: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.5.0
+    cmd: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
   # Building
   build:
