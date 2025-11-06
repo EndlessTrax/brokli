@@ -25,6 +25,10 @@ coverage.html
 go.work
 go.work.sum
 
+# IDE files
+.idea/
+.vscode/
+
 # env file
 .env
 
