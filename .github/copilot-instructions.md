@@ -115,6 +115,25 @@ GitHub Actions runs on PRs:
 
 Match CI locally with: `task ci` or individual tasks like `task ci-test`, `task ci-fmt-check`, `task ci-lint`
 
+## Commit Conventions
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation changes
+- `style:` - Code style changes (formatting, etc.)
+- `refactor:` - Code refactoring
+- `test:` - Test additions or changes
+- `chore:` - Maintenance tasks
+
+**Examples**:
+```
+feat(checker): add retry logic for failed requests
+fix(parser): handle empty href attributes correctly
+docs: update README with verbose flag examples
+test(resolver): add tests for special link types
+chore: upgrade golangci-lint to v2.0.0
+```
+
 ## Debugging
 Use VS Code launch configurations (`.vscode/launch.json`):
 - "Launch file": Runs `main.go` with args `["check", "https://rickywhite.net"]`

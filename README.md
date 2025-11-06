@@ -133,15 +133,6 @@ brokli check url https://localhost:3000
 brokli check sitemap https://localhost:3000/sitemap.xml
 ```
 
-### CI/CD Pipeline
-
-Add to your CI pipeline to catch broken links early:
-
-```bash
-# Exit with non-zero if broken links found
-brokli check sitemap https://staging.example.com/sitemap.xml
-```
-
 ### Pre-Deployment Checks
 
 Quick validation before deploying to production:
@@ -158,21 +149,7 @@ brokli check sitemap https://staging.example.com/sitemap.xml -v
 - [ ] **Configuration File Support** - `.brokli.yml` for persistent settings
 - [ ] **Link Caching** - Cache results to avoid re-checking unchanged links
 - [ ] **Export Formats** - Output results to JSON, CSV, or Markdown
-- [ ] **Exclude Patterns** - Skip checking certain URL patterns
-- [ ] **Retry Logic** - Automatically retry failed requests
-- [ ] **Custom Status Handlers** - Define acceptable status codes per URL pattern
-- [ ] **Parallel Sitemap Processing** - Check multiple sitemaps concurrently
-- [ ] **HTML Report Generation** - Beautiful HTML reports with graphs
-- [ ] **Historical Tracking** - Track broken links over time
-- [ ] **Slack/Discord Notifications** - Alert when broken links are found
-
-### Future Enhancements
-
-- [ ] **Spider Mode** - Recursively crawl entire sites
-- [ ] **Diff Mode** - Compare link status between two versions
-- [ ] **Plugin System** - Extend functionality with custom plugins
-- [ ] **Docker Image** - Pre-built Docker images for easy deployment
-- [ ] **GitHub Action** - Ready-to-use GitHub Action for CI workflows
+- [ ] **Multi-Sitemap Processing** - Check multiple sitemaps concurrently
 
 ## Development
 
@@ -253,58 +230,15 @@ go build -o brokli .
 
 This creates a `brokli` binary in the current directory.
 
-### Project Structure
-
-```text
-brokli/
-├── cmd/              # CLI commands (Cobra)
-│   ├── check.go     # Check URL and sitemap commands
-│   └── root.go      # Root command setup
-├── pkg/
-│   ├── checker/     # HTTP status checking with worker pools
-│   ├── fetcher/     # HTTP fetching operations
-│   ├── link/        # Pure data structures
-│   ├── parser/      # HTML/XML parsing
-│   └── resolver/    # URL resolution logic
-├── .github/
-│   ├── copilot-instructions.md  # AI agent guidance
-│   └── workflows/   # GitHub Actions workflows
-└── Taskfile.yml     # Task definitions
-```
-
-## CI/CD
-
-This project uses GitHub Actions for continuous integration. On every pull request:
-
-1. **Unit Tests** - All tests run with race detection and coverage reporting to Codecov
-2. **Format Check** - Ensures all Go code is properly formatted with `gofmt`
-3. **Lint Check** - Runs `golangci-lint` to catch common issues
-
-The workflow configuration can be found in `.github/workflows/pr-checks.yml`.
-
 ## Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes with tests
-4. Run `task ci` to ensure all checks pass
-5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `style:` - Code style changes (formatting, etc.)
-- `refactor:` - Code refactoring
-- `test:` - Test additions or changes
-- `chore:` - Maintenance tasks
+- Development workflow and branch naming conventions
+- Coding standards and architecture patterns
+- Testing guidelines
+- Pull request process
+- Commit message conventions
 
 ## License
 
