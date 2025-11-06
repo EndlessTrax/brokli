@@ -27,6 +27,12 @@ func getStatusIcon(status int) string {
 	return "?" // Unknown
 }
 
+// isBrokenLink returns true if the status code indicates a broken link
+func isBrokenLink(status int) bool {
+	// A link is broken if it's unchecked (-1) or has a 4xx/5xx status code
+	return status == -1 || status >= 400
+}
+
 func init() {
 	rootCmd.AddCommand(checkCmd)
 	checkCmd.AddCommand(checkUrlCmd)
@@ -99,15 +105,15 @@ var checkUrlCmd = &cobra.Command{
 		// Display results
 		fmt.Println("\nResults:")
 		brokenCount := 0
-		for i, link := range results.Links {
-			statusIcon := getStatusIcon(link.Status)
-			fmt.Printf("%s %d. [%d] %s -> %s\n", statusIcon, i+1, link.Status, link.Text, link.AbsoluteUrl.String())
-			if link.Status >= 400 || link.Status == -1 {
+		for i, linkPtr := range linkPointers {
+			statusIcon := getStatusIcon(linkPtr.Status)
+			fmt.Printf("%s %d. [%d] %s -> %s\n", statusIcon, i+1, linkPtr.Status, linkPtr.Text, linkPtr.AbsoluteUrl.String())
+			if isBrokenLink(linkPtr.Status) {
 				brokenCount++
 			}
 		}
 
-		fmt.Printf("\nSummary: %d total links, %d broken\n", len(results.Links), brokenCount)
+		fmt.Printf("\nSummary: %d total links, %d broken\n", len(linkPointers), brokenCount)
 	},
 }
 
@@ -161,21 +167,21 @@ var checkSitemapCmd = &cobra.Command{
 		// Display results
 		fmt.Println("\nResults:")
 		brokenCount := 0
-		for i, url := range results.Urls {
-			statusIcon := getStatusIcon(url.Status)
-			fmt.Printf("%s %d. [%d] %s", statusIcon, i+1, url.Status, url.AbsoluteUrl.String())
-			if url.LastMod != "" {
-				fmt.Printf(" (modified: %s)", url.LastMod)
+		for i, urlPtr := range urlPointers {
+			statusIcon := getStatusIcon(urlPtr.Status)
+			fmt.Printf("%s %d. [%d] %s", statusIcon, i+1, urlPtr.Status, urlPtr.AbsoluteUrl.String())
+			if urlPtr.LastMod != "" {
+				fmt.Printf(" (modified: %s)", urlPtr.LastMod)
 			}
-			if url.Priority != "" {
-				fmt.Printf(" (priority: %s)", url.Priority)
+			if urlPtr.Priority != "" {
+				fmt.Printf(" (priority: %s)", urlPtr.Priority)
 			}
 			fmt.Println()
-			if url.Status >= 400 || url.Status == -1 {
+			if isBrokenLink(urlPtr.Status) {
 				brokenCount++
 			}
 		}
 
-		fmt.Printf("\nSummary: %d total URLs, %d broken\n", len(results.Urls), brokenCount)
+		fmt.Printf("\nSummary: %d total URLs, %d broken\n", len(urlPointers), brokenCount)
 	},
 }

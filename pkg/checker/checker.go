@@ -163,7 +163,8 @@ func worker(ctx context.Context, client *http.Client, jobs <-chan CheckableLink,
 			results <- fmt.Errorf("failed to check %s: %w", url, err)
 			continue
 		}
-		resp.Body.Close()
+		// Close body immediately - we only need the status code from HEAD request
+		_ = resp.Body.Close()
 
 		// Set the status code
 		link.SetStatus(resp.StatusCode)
