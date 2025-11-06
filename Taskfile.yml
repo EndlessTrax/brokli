@@ -135,6 +135,7 @@ tasks:
       - rm -f {{.BINARY_NAME}}
       - rm -f {{.COVERAGE_FILE}}
       - rm -f coverage.html
+      - rm -rf dist
       - go clean -cache
       - go clean -testcache
 
