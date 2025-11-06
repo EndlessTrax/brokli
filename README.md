@@ -17,6 +17,31 @@ Brokli (a play on "broken links") is a CLI tool that helps developers validate a
 
 ## Installation
 
+### Download Binary
+
+The easiest way to install Brokli is to download a pre-built binary from the [GitHub Releases](https://github.com/EndlessTrax/brokli/releases) page.
+
+**Linux / macOS:**
+
+```bash
+# Download the latest release for your platform
+# Replace VERSION, OS, and ARCH with appropriate values
+# Example: brokli_0.1.0_linux_amd64.tar.gz
+
+# Extract the archive
+tar -xzf brokli_VERSION_OS_ARCH.tar.gz
+
+# Move to your PATH
+sudo mv brokli /usr/local/bin/
+
+# Verify installation
+brokli --version
+```
+
+**Windows:**
+
+Download the `.zip` file for Windows from the releases page, extract it, and add the `brokli.exe` to your PATH.
+
 ### From Source
 
 ```bash
@@ -29,12 +54,6 @@ go build -o brokli .
 
 # Optionally, move to your PATH
 sudo mv brokli /usr/local/bin/
-```
-
-### Using Go Install
-
-```bash
-go install github.com/endlesstrax/brokli@latest
 ```
 
 ## Usage
@@ -109,18 +128,6 @@ Summary: 2 broken URLs found out of 70 total
 - 🔴 **Red** `[404]` - Client errors (4xx status codes)
 - 🔴 **Bold Red** `[500]` - Server errors (5xx status codes)
 - 🟡 **Yellow** `[-1]` - Unchecked/errors
-
-## Configuration
-
-Brokli uses sensible defaults but can be configured via code (configuration file support coming soon):
-
-```go
-config := checker.DefaultConfig()
-config.MaxWorkers = 20          // Concurrent workers (default: 10)
-config.Timeout = 5 * time.Second // Request timeout (default: 10s)
-config.MaxRedirects = 5          // Max redirects to follow (default: 10)
-config.UserAgent = "MyBot/1.0"   // Custom user agent
-```
 
 ## Use Cases
 
@@ -243,13 +250,3 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Built with [Cobra](https://github.com/spf13/cobra) for CLI framework
-- Colored output using [fatih/color](https://github.com/fatih/color)
-- HTML parsing with [golang.org/x/net/html](https://pkg.go.dev/golang.org/x/net/html)
-
----
-
-Made with ❤️ for developers who care about link health
