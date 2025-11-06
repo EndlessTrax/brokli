@@ -1,14 +1,31 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
 	"github.com/spf13/cobra"
 
+	"github.com/endlesstrax/brokli/pkg/checker"
 	"github.com/endlesstrax/brokli/pkg/fetcher"
+	"github.com/endlesstrax/brokli/pkg/link"
 	"github.com/endlesstrax/brokli/pkg/parser"
 )
+
+// getStatusIcon returns an icon based on the HTTP status code
+func getStatusIcon(status int) string {
+	if status == -1 {
+		return "⚠️ " // Warning for unchecked
+	} else if status >= 200 && status < 300 {
+		return "✓" // Success
+	} else if status >= 300 && status < 400 {
+		return "→" // Redirect
+	} else if status >= 400 {
+		return "✗" // Error
+	}
+	return "?" // Unknown
+}
 
 func init() {
 	rootCmd.AddCommand(checkCmd)
@@ -63,10 +80,34 @@ var checkUrlCmd = &cobra.Command{
 
 		// Get page results with all links
 		results := parser.GetPageResults(doc, *baseUrl)
-		fmt.Printf("Found %d links:\n", len(results.Links))
-		for i, link := range results.Links {
-			fmt.Printf("%d. %s -> %s\n", i+1, link.Text, link.AbsoluteUrl.String())
+		fmt.Printf("Found %d links\n", len(results.Links))
+
+		// Check HTTP status for all links
+		fmt.Println("Checking link status...")
+		linkPointers := make([]*link.AnchorTag, len(results.Links))
+		for i := range results.Links {
+			linkPointers[i] = &results.Links[i]
 		}
+
+		ctx := context.Background()
+		config := checker.DefaultConfig()
+		err = checker.CheckAnchorTags(ctx, linkPointers, config)
+		if err != nil {
+			fmt.Printf("Warning: Some links could not be checked: %v\n", err)
+		}
+
+		// Display results
+		fmt.Println("\nResults:")
+		brokenCount := 0
+		for i, link := range results.Links {
+			statusIcon := getStatusIcon(link.Status)
+			fmt.Printf("%s %d. [%d] %s -> %s\n", statusIcon, i+1, link.Status, link.Text, link.AbsoluteUrl.String())
+			if link.Status >= 400 || link.Status == -1 {
+				brokenCount++
+			}
+		}
+
+		fmt.Printf("\nSummary: %d total links, %d broken\n", len(results.Links), brokenCount)
 	},
 }
 
@@ -101,16 +142,40 @@ var checkSitemapCmd = &cobra.Command{
 
 		// Get sitemap results
 		results := parser.GetSitemapResults(sitemap, sitemapUrl)
-		fmt.Printf("Found %d URLs in sitemap:\n", len(results.Urls))
-		for i, sitemapUrl := range results.Urls {
-			fmt.Printf("%d. %s", i+1, sitemapUrl.AbsoluteUrl.String())
-			if sitemapUrl.LastMod != "" {
-				fmt.Printf(" (last modified: %s)", sitemapUrl.LastMod)
+		fmt.Printf("Found %d URLs in sitemap\n", len(results.Urls))
+
+		// Check HTTP status for all URLs
+		fmt.Println("Checking URL status...")
+		urlPointers := make([]*link.SitemapUrl, len(results.Urls))
+		for i := range results.Urls {
+			urlPointers[i] = &results.Urls[i]
+		}
+
+		ctx := context.Background()
+		config := checker.DefaultConfig()
+		err = checker.CheckSitemapUrls(ctx, urlPointers, config)
+		if err != nil {
+			fmt.Printf("Warning: Some URLs could not be checked: %v\n", err)
+		}
+
+		// Display results
+		fmt.Println("\nResults:")
+		brokenCount := 0
+		for i, url := range results.Urls {
+			statusIcon := getStatusIcon(url.Status)
+			fmt.Printf("%s %d. [%d] %s", statusIcon, i+1, url.Status, url.AbsoluteUrl.String())
+			if url.LastMod != "" {
+				fmt.Printf(" (modified: %s)", url.LastMod)
 			}
-			if sitemapUrl.Priority != "" {
-				fmt.Printf(" (priority: %s)", sitemapUrl.Priority)
+			if url.Priority != "" {
+				fmt.Printf(" (priority: %s)", url.Priority)
 			}
 			fmt.Println()
+			if url.Status >= 400 || url.Status == -1 {
+				brokenCount++
+			}
 		}
+
+		fmt.Printf("\nSummary: %d total URLs, %d broken\n", len(results.Urls), brokenCount)
 	},
 }
