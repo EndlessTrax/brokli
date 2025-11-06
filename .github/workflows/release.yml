@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  goreleaser:
+    name: Release with GoReleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # GoReleaser needs full history for changelog generation
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Validate version match
+        run: |
+          # Extract version from git tag (strip 'v' prefix)
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "Tag version: v${TAG_VERSION}"
+          
+          # Extract version from cmd/root.go
+          CODE_VERSION=$(grep -oP 'Version = "\K[^"]+' cmd/root.go)
+          echo "Code version: ${CODE_VERSION}"
+          
+          # Compare versions
+          if [ "${TAG_VERSION}" != "${CODE_VERSION}" ]; then
+            echo "❌ Error: Version mismatch!"
+            echo "   Git tag: v${TAG_VERSION}"
+            echo "   Code:    ${CODE_VERSION}"
+            echo ""
+            echo "Please update the version in cmd/root.go to match the tag."
+            exit 1
+          fi
+          
+          echo "✅ Version match confirmed: ${CODE_VERSION}"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

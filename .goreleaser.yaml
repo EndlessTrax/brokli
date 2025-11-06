@@ -1,0 +1,40 @@
+# GoReleaser config for brokli (v2)
+# See https://goreleaser.com for reference
+
+version: 2
+
+project_name: brokli
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: brokli
+    main: .
+    binary: brokli
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    goarm: ["7"]
+
+archives:
+  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    files:
+      - LICENSE*
+      - README*
+      - CHANGELOG*
+
+checksum:
+  name_template: 'SHA256SUMS_{{ .Version }}.txt'
+
+changelog:
+  use: github
+
+release:
+  prerelease: auto
