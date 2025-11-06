@@ -51,10 +51,16 @@ func isBrokenLink(status int) bool {
 	return status == -1 || status >= 400
 }
 
+var verbose bool
+
 func init() {
 	rootCmd.AddCommand(checkCmd)
 	checkCmd.AddCommand(checkUrlCmd)
 	checkCmd.AddCommand(checkSitemapCmd)
+	
+	// Add verbose flag to both subcommands
+	checkUrlCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show all links, not just broken ones")
+	checkSitemapCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show all URLs, not just broken ones")
 }
 
 var checkCmd = &cobra.Command{
@@ -135,25 +141,44 @@ var checkUrlCmd = &cobra.Command{
 			}
 		}
 
-		// Display only broken links by default
-		if brokenCount > 0 {
-			fmt.Println("\nBroken Links:")
-			count := 1
-			for _, linkPtr := range linkPointers {
-				if isBrokenLink(linkPtr.Status) {
-					statusIcon := getStatusIcon(linkPtr.Status)
-					coloredStatus := getColoredStatus(linkPtr.Status)
-					fmt.Printf("%s %d. %s %s -> %s\n", statusIcon, count, coloredStatus, linkPtr.Text, linkPtr.AbsoluteUrl.String())
-					count++
-				}
+		// Display results based on verbose flag
+		if verbose {
+			// Show all links in verbose mode
+			fmt.Println("\nAll Links:")
+			for i, linkPtr := range linkPointers {
+				statusIcon := getStatusIcon(linkPtr.Status)
+				coloredStatus := getColoredStatus(linkPtr.Status)
+				fmt.Printf("%s %d. %s %s -> %s\n", statusIcon, i+1, coloredStatus, linkPtr.Text, linkPtr.AbsoluteUrl.String())
 			}
-			// Display summary for broken links
+			// Display summary
 			fmt.Printf("\n")
-			color.Red("Summary: %d broken links found out of %d total", brokenCount, len(linkPointers))
+			if brokenCount > 0 {
+				color.Red("Summary: %d broken links found out of %d total", brokenCount, len(linkPointers))
+			} else {
+				color.Green("Summary: All %d links are working", len(linkPointers))
+			}
 			fmt.Println()
 		} else {
-			color.Green("\n✓ All links are working!")
-			fmt.Println()
+			// Show only broken links by default
+			if brokenCount > 0 {
+				fmt.Println("\nBroken Links:")
+				count := 1
+				for _, linkPtr := range linkPointers {
+					if isBrokenLink(linkPtr.Status) {
+						statusIcon := getStatusIcon(linkPtr.Status)
+						coloredStatus := getColoredStatus(linkPtr.Status)
+						fmt.Printf("%s %d. %s %s -> %s\n", statusIcon, count, coloredStatus, linkPtr.Text, linkPtr.AbsoluteUrl.String())
+						count++
+					}
+				}
+				// Display summary for broken links
+				fmt.Printf("\n")
+				color.Red("Summary: %d broken links found out of %d total", brokenCount, len(linkPointers))
+				fmt.Println()
+			} else {
+				color.Green("\n✓ All links are working!")
+				fmt.Println()
+			}
 		}
 	},
 }
@@ -220,32 +245,58 @@ var checkSitemapCmd = &cobra.Command{
 			}
 		}
 
-		// Display only broken URLs by default
-		if brokenCount > 0 {
-			fmt.Println("\nBroken URLs:")
-			count := 1
-			for _, urlPtr := range urlPointers {
-				if isBrokenLink(urlPtr.Status) {
-					statusIcon := getStatusIcon(urlPtr.Status)
-					coloredStatus := getColoredStatus(urlPtr.Status)
-					fmt.Printf("%s %d. %s %s", statusIcon, count, coloredStatus, urlPtr.AbsoluteUrl.String())
-					if urlPtr.LastMod != "" {
-						fmt.Printf(" (modified: %s)", color.CyanString(urlPtr.LastMod))
-					}
-					if urlPtr.Priority != "" {
-						fmt.Printf(" (priority: %s)", color.YellowString(urlPtr.Priority))
-					}
-					fmt.Println()
-					count++
+		// Display results based on verbose flag
+		if verbose {
+			// Show all URLs in verbose mode
+			fmt.Println("\nAll URLs:")
+			for i, urlPtr := range urlPointers {
+				statusIcon := getStatusIcon(urlPtr.Status)
+				coloredStatus := getColoredStatus(urlPtr.Status)
+				fmt.Printf("%s %d. %s %s", statusIcon, i+1, coloredStatus, urlPtr.AbsoluteUrl.String())
+				if urlPtr.LastMod != "" {
+					fmt.Printf(" (modified: %s)", color.CyanString(urlPtr.LastMod))
 				}
+				if urlPtr.Priority != "" {
+					fmt.Printf(" (priority: %s)", color.YellowString(urlPtr.Priority))
+				}
+				fmt.Println()
 			}
-			// Display summary for broken URLs
+			// Display summary
 			fmt.Printf("\n")
-			color.Red("Summary: %d broken URLs found out of %d total", brokenCount, len(urlPointers))
+			if brokenCount > 0 {
+				color.Red("Summary: %d broken URLs found out of %d total", brokenCount, len(urlPointers))
+			} else {
+				color.Green("Summary: All %d URLs are working", len(urlPointers))
+			}
 			fmt.Println()
 		} else {
-			color.Green("\n✓ All URLs are working!")
-			fmt.Println()
+			// Show only broken URLs by default
+			if brokenCount > 0 {
+				fmt.Println("\nBroken URLs:")
+				count := 1
+				for _, urlPtr := range urlPointers {
+					if isBrokenLink(urlPtr.Status) {
+						statusIcon := getStatusIcon(urlPtr.Status)
+						coloredStatus := getColoredStatus(urlPtr.Status)
+						fmt.Printf("%s %d. %s %s", statusIcon, count, coloredStatus, urlPtr.AbsoluteUrl.String())
+						if urlPtr.LastMod != "" {
+							fmt.Printf(" (modified: %s)", color.CyanString(urlPtr.LastMod))
+						}
+						if urlPtr.Priority != "" {
+							fmt.Printf(" (priority: %s)", color.YellowString(urlPtr.Priority))
+						}
+						fmt.Println()
+						count++
+					}
+				}
+				// Display summary for broken URLs
+				fmt.Printf("\n")
+				color.Red("Summary: %d broken URLs found out of %d total", brokenCount, len(urlPointers))
+				fmt.Println()
+			} else {
+				color.Green("\n✓ All URLs are working!")
+				fmt.Println()
+			}
 		}
 	},
 }
