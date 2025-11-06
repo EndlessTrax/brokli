@@ -57,7 +57,7 @@ func init() {
 	rootCmd.AddCommand(checkCmd)
 	checkCmd.AddCommand(checkUrlCmd)
 	checkCmd.AddCommand(checkSitemapCmd)
-	
+
 	// Add verbose flag to both subcommands
 	checkUrlCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show all links, not just broken ones")
 	checkSitemapCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show all URLs, not just broken ones")
