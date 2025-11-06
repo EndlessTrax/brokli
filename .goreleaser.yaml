@@ -1,5 +1,7 @@
-# GoReleaser config for brokli
+# GoReleaser config for brokli (v2)
 # See https://goreleaser.com for reference
+
+version: 2
 
 project_name: brokli
 
@@ -22,12 +24,11 @@ builds:
     goarm: ["7"]
 
 archives:
-  - id: release-archives
-    builds: [brokli]
-    name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
-    format_overrides:
-      - goos: windows
-        format: zip
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+    files:
+      - LICENSE*
+      - README*
+      - CHANGELOG*
 
 checksum:
   name_template: 'SHA256SUMS.txt'
@@ -40,5 +41,4 @@ changelog:
       - '^chore:'
 
 release:
-  # Mark pre-releases if the tag contains a hyphen (e.g., v1.0.0-rc1)
   prerelease: auto
