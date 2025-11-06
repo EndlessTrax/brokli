@@ -147,19 +147,14 @@ var checkUrlCmd = &cobra.Command{
 					count++
 				}
 			}
-		} else {
-			color.Green("\n✓ All links are working!")
-		}
-
-		// Display summary
-		if brokenCount > 0 {
+			// Display summary for broken links
 			fmt.Printf("\n")
 			color.Red("Summary: %d broken links found out of %d total", brokenCount, len(linkPointers))
+			fmt.Println()
 		} else {
-			fmt.Printf("\n")
-			color.Green("Summary: All %d links are working", len(linkPointers))
+			color.Green("\n✓ All links are working!")
+			fmt.Println()
 		}
-		fmt.Println()
 	},
 }
 
@@ -244,18 +239,13 @@ var checkSitemapCmd = &cobra.Command{
 					count++
 				}
 			}
-		} else {
-			color.Green("\n✓ All URLs are working!")
-		}
-
-		// Display summary
-		if brokenCount > 0 {
+			// Display summary for broken URLs
 			fmt.Printf("\n")
 			color.Red("Summary: %d broken URLs found out of %d total", brokenCount, len(urlPointers))
+			fmt.Println()
 		} else {
-			fmt.Printf("\n")
-			color.Green("Summary: All %d URLs are working", len(urlPointers))
+			color.Green("\n✓ All URLs are working!")
+			fmt.Println()
 		}
-		fmt.Println()
 	},
 }
