@@ -97,7 +97,7 @@ All Links:
 → 3. [301] Old Page -> https://example.com/redirect
 ✗ 4. [404] Missing -> https://example.com/missing
 
-Summary: 1 broken links found out of 10 total
+Summary: 1 broken link found out of 10 total
 ```
 
 ### Check a Sitemap
