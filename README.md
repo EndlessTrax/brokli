@@ -15,7 +15,7 @@ go test ./...
 Run tests with coverage:
 
 ```bash
-go test -v -race -coverprofile=coverage.out ./...\
+go test -v -race -coverprofile=coverage.out ./...
 ```
 
 ### Code Quality
