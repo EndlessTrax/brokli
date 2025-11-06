@@ -120,7 +120,7 @@ func CheckLinks(ctx context.Context, links []CheckableLink, config Config) error
 	var errors []error
 	checkedCount := 0
 	totalCount := len(links)
-	
+
 	for err := range results {
 		if err != nil {
 			errors = append(errors, err)
