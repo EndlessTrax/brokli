@@ -26,6 +26,10 @@ func TestDefaultConfig(t *testing.T) {
 	if config.UserAgent == "" {
 		t.Error("Expected UserAgent to be set")
 	}
+
+	if config.MaxRedirects != 10 {
+		t.Errorf("Expected MaxRedirects to be 10, got %d", config.MaxRedirects)
+	}
 }
 
 func TestCheckLinks_Empty(t *testing.T) {

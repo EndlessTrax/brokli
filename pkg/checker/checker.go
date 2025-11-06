@@ -18,14 +18,17 @@ type Config struct {
 	Timeout time.Duration
 	// UserAgent is the User-Agent header to send with requests
 	UserAgent string
+	// MaxRedirects is the maximum number of redirects to follow (default: 10)
+	MaxRedirects int
 }
 
 // DefaultConfig returns a sensible default configuration
 func DefaultConfig() Config {
 	return Config{
-		MaxWorkers: 10,
-		Timeout:    10 * time.Second,
-		UserAgent:  "Brokli/0.1.0 (Broken Link Checker)",
+		MaxWorkers:   10,
+		Timeout:      10 * time.Second,
+		UserAgent:    "Brokli/0.1.0 (Broken Link Checker)",
+		MaxRedirects: 10,
 	}
 }
 
@@ -71,9 +74,9 @@ func CheckLinks(ctx context.Context, links []CheckableLink, config Config) error
 	client := &http.Client{
 		Timeout: config.Timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			// Follow up to 10 redirects
-			if len(via) >= 10 {
-				return fmt.Errorf("too many redirects")
+			// Follow up to MaxRedirects redirects
+			if len(via) >= config.MaxRedirects {
+				return fmt.Errorf("stopped after %d redirects", config.MaxRedirects)
 			}
 			return nil
 		},

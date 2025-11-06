@@ -38,11 +38,16 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
 - Status codes: `-1` = unchecked, `200` = OK, `404` = not found, etc.
 - Data structures are pure - no HTTP logic in types (separation of concerns)
 
-### Concurrency & Performance (Future)
-- HTTP status checks should use goroutines with worker pools to check links concurrently
-- Consider rate limiting to avoid overwhelming local dev servers
-- Terminal output should show progress (e.g., "Checking 45/120 links...")
-- Checker package will operate on `link.AnchorTag` and `link.SitemapUrl` to set Status fields
+### Concurrency & Performance
+- HTTP status checks use goroutines with worker pools (default: 10 concurrent workers)
+- Checker configuration (`pkg/checker.Config`):
+  - `MaxWorkers`: Number of concurrent HTTP requests (default: 10)
+  - `Timeout`: Maximum time per request (default: 10s)
+  - `UserAgent`: Custom User-Agent header (default: "Brokli/0.1.0 (Broken Link Checker)")
+  - `MaxRedirects`: Maximum redirects to follow (default: 10)
+- Terminal output shows progress indication
+- Rate limiting can be controlled via `MaxWorkers` to avoid overwhelming local dev servers
+- Checker package operates on `link.AnchorTag` and `link.SitemapUrl` to set Status fields
 
 ### Testing Patterns
 - Test files mirror source files: `fetcher_test.go`, `resolver_test.go`, `html_test.go`, `sitemap_test.go`
