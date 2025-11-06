@@ -24,21 +24,17 @@ builds:
     goarm: ["7"]
 
 archives:
-  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
     files:
       - LICENSE*
       - README*
       - CHANGELOG*
 
 checksum:
-  name_template: 'SHA256SUMS.txt'
+  name_template: 'SHA256SUMS_{{ .Version }}.txt'
 
 changelog:
   use: github
-  filters:
-    exclude:
-      - '^docs:'
-      - '^chore:'
 
 release:
   prerelease: auto

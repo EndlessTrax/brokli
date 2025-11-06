@@ -29,6 +29,28 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Validate version match
+        run: |
+          # Extract version from git tag (strip 'v' prefix)
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "Tag version: v${TAG_VERSION}"
+          
+          # Extract version from cmd/root.go
+          CODE_VERSION=$(grep -oP 'Version:\s*"\K[^"]+' cmd/root.go)
+          echo "Code version: ${CODE_VERSION}"
+          
+          # Compare versions
+          if [ "${TAG_VERSION}" != "${CODE_VERSION}" ]; then
+            echo "❌ Error: Version mismatch!"
+            echo "   Git tag: v${TAG_VERSION}"
+            echo "   Code:    ${CODE_VERSION}"
+            echo ""
+            echo "Please update the version in cmd/root.go to match the tag."
+            exit 1
+          fi
+          
+          echo "✅ Version match confirmed: ${CODE_VERSION}"
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:

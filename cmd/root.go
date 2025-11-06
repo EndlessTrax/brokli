@@ -7,9 +7,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is the version of Brokli. It can be set at build time via ldflags.
+var Version = "0.1.0"
+
 var rootCmd = &cobra.Command{
 	Use:     "brokli",
-	Version: "0.1.0",
+	Version: Version,
 	Short:   "TODO: Add a short description here",
 	Long:    `TODO: Add a longer description here`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -23,8 +26,8 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number of Brokli",
 	Long:  `All software has versions. This is Brokli's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Print the version number of Brokli from rootCmd
-		fmt.Println("Brokli v" + rootCmd.Version)
+		// Print the version number of Brokli
+		fmt.Println("Brokli v" + Version)
 	},
 }
 
