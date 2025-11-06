@@ -84,32 +84,6 @@ tasks:
     generates:
       - "{{.BINARY_NAME}}"
 
-  build-race:
-    desc: "Build the application with race detection"
-    cmd: go build -race -o {{.BINARY_NAME}} {{.MAIN_PACKAGE_PATH}}
-    generates:
-      - "{{.BINARY_NAME}}"
-
-  install:
-    desc: "Install the application to $GOPATH/bin"
-    cmd: go install {{.MAIN_PACKAGE_PATH}}
-
-  # Running
-  run:
-    desc: "Run the application (show help)"
-    deps: [build]
-    cmd: ./{{.BINARY_NAME}}
-
-  run-version:
-    desc: "Show application version"
-    deps: [build]
-    cmd: ./{{.BINARY_NAME}} version
-
-  run-check-url:
-    desc: "Run check url command with example URL"
-    deps: [build]
-    cmd: ./{{.BINARY_NAME}} check url https://example.com
-
   # Maintenance
   clean:
     desc: "Clean build artifacts and temporary files"
@@ -158,11 +132,11 @@ tasks:
 
   # Development workflow
   dev:
-    desc: "Complete development workflow: deps, test, fmt, build"
+    desc: "Complete development workflow: lint, fmt, test, build"
     cmds:
-      - task: deps
-      - task: test
+      - task: lint
       - task: fmt
+      - task: test
       - task: build
 
   all:

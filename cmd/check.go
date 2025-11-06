@@ -6,7 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	p "github.com/endlesstrax/brokli/pkg/parse"
+	"github.com/endlesstrax/brokli/pkg/fetcher"
+	"github.com/endlesstrax/brokli/pkg/parser"
 )
 
 func init() {
@@ -47,21 +48,21 @@ var checkUrlCmd = &cobra.Command{
 		}
 
 		// Get HTML content
-		htmlBytes, err := p.GetHTML(urlStr)
+		htmlBytes, err := fetcher.GetHTML(urlStr)
 		if err != nil {
 			fmt.Printf("Error fetching HTML: %v\n", err)
 			return
 		}
 
 		// Parse HTML into document tree
-		doc, err := p.ParseHTML(htmlBytes)
+		doc, err := parser.ParseHTML(htmlBytes)
 		if err != nil {
 			fmt.Printf("Error parsing HTML: %v\n", err)
 			return
 		}
 
 		// Get page results with all links
-		results := p.GetPageResults(doc, *baseUrl)
+		results := parser.GetPageResults(doc, *baseUrl)
 		fmt.Printf("Found %d links:\n", len(results.Links))
 		for i, link := range results.Links {
 			fmt.Printf("%d. %s -> %s\n", i+1, link.Text, link.AbsoluteUrl.String())
@@ -85,21 +86,21 @@ var checkSitemapCmd = &cobra.Command{
 		sitemapUrl := args[0]
 
 		// Get sitemap XML content
-		xmlBytes, err := p.GetHTML(sitemapUrl) // Reuse GetHTML as it fetches any URL content
+		xmlBytes, err := fetcher.GetHTML(sitemapUrl) // Reuse GetHTML as it fetches any URL content
 		if err != nil {
 			fmt.Printf("Error fetching sitemap: %v\n", err)
 			return
 		}
 
 		// Parse sitemap XML
-		sitemap, err := p.ParseSitemap(xmlBytes)
+		sitemap, err := parser.ParseSitemap(xmlBytes)
 		if err != nil {
 			fmt.Printf("Error parsing sitemap: %v\n", err)
 			return
 		}
 
 		// Get sitemap results
-		results := p.GetSitemapResults(sitemap, sitemapUrl)
+		results := parser.GetSitemapResults(sitemap, sitemapUrl)
 		fmt.Printf("Found %d URLs in sitemap:\n", len(results.Urls))
 		for i, sitemapUrl := range results.Urls {
 			fmt.Printf("%d. %s", i+1, sitemapUrl.AbsoluteUrl.String())
