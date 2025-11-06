@@ -36,7 +36,7 @@ jobs:
           echo "Tag version: v${TAG_VERSION}"
           
           # Extract version from cmd/root.go
-          CODE_VERSION=$(grep -oP 'Version:\s*"\K[^"]+' cmd/root.go)
+          CODE_VERSION=$(grep -oP 'Version = "\K[^"]+' cmd/root.go)
           echo "Code version: ${CODE_VERSION}"
           
           # Compare versions
