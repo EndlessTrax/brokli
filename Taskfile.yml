@@ -84,6 +84,31 @@ tasks:
     generates:
       - "{{.BINARY_NAME}}"
 
+  # Release (GoReleaser)
+  goreleaser-install:
+    desc: "Install GoReleaser CLI"
+    cmd: go install github.com/goreleaser/goreleaser/v2@latest
+
+  release-check:
+    desc: "Validate GoReleaser configuration"
+    cmds:
+      - |
+        if ! command -v goreleaser >/dev/null 2>&1; then
+          echo "GoReleaser not found. Install it with: task goreleaser-install";
+          exit 1;
+        fi
+      - goreleaser check
+
+  release-snapshot:
+    desc: "Build a local snapshot release (no publish)"
+    cmds:
+      - |
+        if ! command -v goreleaser >/dev/null 2>&1; then
+          echo "GoReleaser not found. Install it with: task goreleaser-install";
+          exit 1;
+        fi
+      - goreleaser release --snapshot --clean
+
   # Maintenance
   clean:
     desc: "Clean build artifacts and temporary files"

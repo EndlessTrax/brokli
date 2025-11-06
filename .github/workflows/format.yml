@@ -1,0 +1,36 @@
+---
+name: Format
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.go"
+      - ".github/workflows/format.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Check formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "The following files are not properly formatted:";
+            gofmt -s -l .;
+            echo "";
+            echo "Please run 'go fmt ./...' to fix formatting issues.";
+            exit 1;
+          fi
