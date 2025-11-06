@@ -16,7 +16,7 @@ import (
 // getStatusIcon returns an icon based on the HTTP status code
 func getStatusIcon(status int) string {
 	if status == -1 {
-		return "⚠️ " // Warning for unchecked
+		return "⚠️" // Warning for unchecked
 	} else if status >= 200 && status < 300 {
 		return "✓" // Success
 	} else if status >= 300 && status < 400 {
