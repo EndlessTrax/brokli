@@ -4,7 +4,7 @@
 
 Brokli (a play on "broken links") is a CLI tool for checking broken links on websites during development. It helps developers validate all links on a page or in a sitemap by fetching URLs, checking HTTP status codes concurrently, and displaying results in a pretty terminal output.
 
-**Current Status**: Core parsing and URL resolution complete. Next: implement concurrent HTTP checking and pretty terminal output.
+**Current Status**: Core features complete (v0.1.0). Concurrent HTTP checking, progress indication, and colored terminal output fully implemented. See [ROADMAP.md](../ROADMAP.md) for planned enhancements.
 
 **Architecture**: Go CLI using Cobra framework with clear separation of concerns:
 - `cmd/`: CLI commands and user interaction (Cobra commands)
@@ -14,6 +14,16 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
 - `pkg/resolver/`: URL resolution logic (`ResolveAbsoluteUrl`, `IsSpecialLink`)
 
 **Target Use Case**: Local development workflow - developers run `brokli check url https://localhost:3000` or `brokli check sitemap https://localhost:3000/sitemap.xml` to validate links before deployment.
+
+## Completed Features (v0.1.0)
+
+- ✅ **Concurrent HTTP Checking** - Worker pool with configurable workers (default: 10)
+- ✅ **Progress Indication** - Real-time counter with thread-safe serial callback
+- ✅ **Colored Terminal Output** - Status code coloring (green/red/cyan/yellow)
+- ✅ **Verbose Mode** - `--verbose/-v` flag to show all links vs broken only
+- ✅ **Smart Filtering** - Display broken links (4xx/5xx) by default
+- ✅ **URL & Sitemap Support** - Check single pages or entire sitemaps
+- ✅ **Comprehensive Testing** - 94%+ test coverage with race detection
 
 ## Key Patterns & Conventions
 
@@ -45,9 +55,26 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
   - `Timeout`: Maximum time per request (default: 10s)
   - `UserAgent`: Custom User-Agent header (default: "Brokli/0.1.0 (Broken Link Checker)")
   - `MaxRedirects`: Maximum redirects to follow (default: 10)
-- Terminal output shows progress indication
+  - `ProgressCallback`: Optional callback for progress updates (func(checked, total int))
+- Progress tracking: Thread-safe with serial callback invocation in results loop
+- Terminal output shows progress indication with colored status codes
 - Rate limiting can be controlled via `MaxWorkers` to avoid overwhelming local dev servers
 - Checker package operates on `link.AnchorTag` and `link.SitemapUrl` to set Status fields
+
+### Output & Display
+- Color-coded status using `github.com/fatih/color`:
+  - Green: 2xx success codes
+  - Cyan: 3xx redirect codes
+  - Red: 4xx client errors
+  - Bold Red: 5xx server errors
+  - Yellow: -1 unchecked/error state
+- Smart filtering: By default shows only broken links (4xx/5xx)
+- Verbose mode (`--verbose/-v`): Shows all links with status codes
+- Helper functions in `cmd/check.go`:
+  - `getStatusIcon()`: Returns emoji/symbol for status
+  - `getColoredStatus()`: Returns colored status code string
+  - `isBrokenLink()`: Determines if link should be displayed by default
+- Per-command flag retrieval (no global variables)
 
 ### Testing Patterns
 - Test files mirror source files: `fetcher_test.go`, `resolver_test.go`, `html_test.go`, `sitemap_test.go`
@@ -95,11 +122,11 @@ Use VS Code launch configurations (`.vscode/launch.json`):
 
 ## Common Tasks
 
-**Implementing concurrent HTTP checks:**
-1. Create `pkg/checker/` package with worker pool pattern
-2. Use channels to distribute `link.AnchorTag` and `link.SitemapUrl` to worker goroutines
-3. Workers call `http.Head()` on `link.AbsoluteUrl` and update `Status` fields
-4. Add timeout context to prevent hanging on slow/dead links
+**Adding progress tracking to new features:**
+1. Use `checker.Config.ProgressCallback` for async operations
+2. Invoke callback serially (not in goroutines) to avoid thread-safety issues
+3. Call after each item completes: `if cfg.ProgressCallback != nil { cfg.ProgressCallback(completed, total) }`
+4. Test with `TestCheckLinks_ProgressCallback` pattern
 
 **Adding a new CLI command:**
 1. Add command in `cmd/` file, attach to parent with `rootCmd.AddCommand(newCmd)`
@@ -116,7 +143,17 @@ Use VS Code launch configurations (`.vscode/launch.json`):
 - Add validation in constructor functions in `pkg/parser/` (e.g., `newAnchorTag`, `newSitemapUrl`)
 - Write tests for nil/invalid inputs and happy path
 
-**Pretty terminal output:**
-- Consider libraries like `github.com/fatih/color` for colored output (green=200, red=404, yellow=warnings)
-- Use `github.com/olekukonko/tablewriter` for tabular link status display
-- Show summary statistics: total links, broken links, warnings
+**Adding colored output to new commands:**
+- Import `github.com/fatih/color` for terminal coloring
+- Define color schemes: `color.New(color.FgGreen)`, `color.New(color.FgRed, color.Bold)`
+- Use helper functions: `getStatusIcon()`, `getColoredStatus()` for consistency
+- Show summary statistics: total links, broken links, redirects
+- Follow existing pattern in `cmd/check.go` for consistent UX
+
+**Implementing roadmap features:**
+1. Check [ROADMAP.md](../ROADMAP.md) for feature specifications
+2. Create feature branch: `git checkout -b feature/feature-name`
+3. Implement with tests (maintain 90%+ coverage)
+4. Add documentation to README.md if user-facing
+5. Run `task ci` before creating PR
+6. Update ROADMAP.md to mark feature as complete
