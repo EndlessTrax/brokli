@@ -4,8 +4,6 @@
 
 Brokli (a play on "broken links") is a CLI tool for checking broken links on websites during development. It helps developers validate all links on a page or in a sitemap by fetching URLs, checking HTTP status codes concurrently, and displaying results in a pretty terminal output.
 
-**Current Status**: Core features complete (v0.1.0). Concurrent HTTP checking, progress indication, and colored terminal output fully implemented. See [ROADMAP.md](../ROADMAP.md) for planned enhancements.
-
 **Architecture**: Go CLI using Cobra framework with clear separation of concerns:
 - `cmd/`: CLI commands and user interaction (Cobra commands)
 - `pkg/link/`: Pure data structures (`AnchorTag`, `SitemapUrl`, `PageResults`, `SitemapResults`)
@@ -15,7 +13,7 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
 
 **Target Use Case**: Local development workflow - developers run `brokli check url https://localhost:3000` or `brokli check sitemap https://localhost:3000/sitemap.xml` to validate links before deployment.
 
-## Completed Features (v0.1.0)
+## Completed Features
 
 - ✅ **Concurrent HTTP Checking** - Worker pool with configurable workers (default: 10)
 - ✅ **Progress Indication** - Real-time counter with thread-safe serial callback
@@ -136,7 +134,7 @@ chore: upgrade golangci-lint to v2.0.0
 
 ## Debugging
 Use VS Code launch configurations (`.vscode/launch.json`):
-- "Launch file": Runs `main.go` with args `["check", "https://rickywhite.net"]`
+- "Launch file": Runs `main.go` with args `["check", "https://your-url-here.com"]`
 - "Launch Package": Debugs current package
 
 ## Common Tasks
@@ -168,11 +166,3 @@ Use VS Code launch configurations (`.vscode/launch.json`):
 - Use helper functions: `getStatusIcon()`, `getColoredStatus()` for consistency
 - Show summary statistics: total links, broken links, redirects
 - Follow existing pattern in `cmd/check.go` for consistent UX
-
-**Implementing roadmap features:**
-1. Check [ROADMAP.md](../ROADMAP.md) for feature specifications
-2. Create feature branch: `git checkout -b feature/feature-name`
-3. Implement with tests (maintain 90%+ coverage)
-4. Add documentation to README.md if user-facing
-5. Run `task ci` before creating PR
-6. Update ROADMAP.md to mark feature as complete
