@@ -63,8 +63,8 @@ func init() {
 
 var checkCmd = &cobra.Command{
 	Use:   "check",
-	Short: "TODO: Add a short description here",
-	Long:  `TODO: Add a longer description here`,
+	Short: "Check links on a URL or sitemap",
+	Long:  `Check all links on a webpage or sitemap for broken links. Validates HTTP status codes and displays results with color-coded output.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Help()
 	},
