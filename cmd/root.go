@@ -13,8 +13,8 @@ var Version = "0.1.0"
 var rootCmd = &cobra.Command{
 	Use:     "brokli",
 	Version: Version,
-	Short:   "TODO: Add a short description here",
-	Long:    `TODO: Add a longer description here`,
+	Short:   "A fast, concurrent broken link checker for websites and sitemaps",
+	Long:    `Brokli is a CLI tool that helps developers validate all links on a page or sitemap during development. It checks HTTP status codes concurrently and displays results with color-coded output, making it easy to spot broken links before deployment.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// If no subcommand is provided, show help
 		_ = cmd.Help()
