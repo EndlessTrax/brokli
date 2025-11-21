@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -51,6 +52,55 @@ func isBrokenLink(status int) bool {
 	return status == -1 || status >= 400
 }
 
+// printGitHubAnnotation outputs a GitHub Actions workflow annotation for a broken link
+func printGitHubAnnotation(url, text string, status int) {
+	// Use ::error for broken links to make them highly visible in GitHub Actions
+	annotationType := "error"
+	title := fmt.Sprintf("Broken Link (Status %d)", status)
+	message := fmt.Sprintf("Link to %s returned status %d", url, status)
+	if text != "" {
+		message = fmt.Sprintf("Link '%s' to %s returned status %d", text, url, status)
+	}
+	fmt.Printf("::%s title=%s::%s\n", annotationType, title, message)
+}
+
+// writeGitHubOutput writes summary data to GITHUB_OUTPUT if the environment variable is set
+func writeGitHubOutput(brokenCount, totalCount int) error {
+	outputFile := os.Getenv("GITHUB_OUTPUT")
+	if outputFile == "" {
+		// GITHUB_OUTPUT not set, skip writing
+		return nil
+	}
+
+	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open GITHUB_OUTPUT file: %w", err)
+	}
+	defer f.Close()
+
+	// Write summary statistics as GitHub Actions step outputs
+	_, err = fmt.Fprintf(f, "broken_links_count=%d\n", brokenCount)
+	if err != nil {
+		return fmt.Errorf("failed to write broken_links_count: %w", err)
+	}
+
+	_, err = fmt.Fprintf(f, "total_links_count=%d\n", totalCount)
+	if err != nil {
+		return fmt.Errorf("failed to write total_links_count: %w", err)
+	}
+
+	hasBrokenLinks := "false"
+	if brokenCount > 0 {
+		hasBrokenLinks = "true"
+	}
+	_, err = fmt.Fprintf(f, "has_broken_links=%s\n", hasBrokenLinks)
+	if err != nil {
+		return fmt.Errorf("failed to write has_broken_links: %w", err)
+	}
+
+	return nil
+}
+
 func init() {
 	rootCmd.AddCommand(checkCmd)
 	checkCmd.AddCommand(checkUrlCmd)
@@ -59,6 +109,10 @@ func init() {
 	// Add verbose flag to both subcommands (each has its own flag instance)
 	checkUrlCmd.Flags().BoolP("verbose", "v", false, "Show all links, not just broken ones")
 	checkSitemapCmd.Flags().BoolP("verbose", "v", false, "Show all URLs, not just broken ones")
+
+	// Add github-output flag to both subcommands
+	checkUrlCmd.Flags().Bool("github-output", false, "Format output for GitHub Actions (workflow annotations and step outputs)")
+	checkSitemapCmd.Flags().Bool("github-output", false, "Format output for GitHub Actions (workflow annotations and step outputs)")
 }
 
 var checkCmd = &cobra.Command{
@@ -139,8 +193,28 @@ var checkUrlCmd = &cobra.Command{
 			}
 		}
 
-		// Get verbose flag from command
+		// Get flags from command
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		githubOutput, _ := cmd.Flags().GetBool("github-output")
+
+		// Handle GitHub Actions output format
+		if githubOutput {
+			// Print workflow annotations for broken links
+			for _, linkPtr := range linkPointers {
+				if isBrokenLink(linkPtr.Status) {
+					printGitHubAnnotation(linkPtr.AbsoluteUrl.String(), linkPtr.Text, linkPtr.Status)
+				}
+			}
+
+			// Write summary to GITHUB_OUTPUT if available
+			if err := writeGitHubOutput(brokenCount, len(linkPointers)); err != nil {
+				fmt.Printf("Warning: Failed to write to GITHUB_OUTPUT: %v\n", err)
+			}
+
+			// Print summary to stdout
+			fmt.Printf("Found %d broken links out of %d total\n", brokenCount, len(linkPointers))
+			return
+		}
 
 		// Display results based on verbose flag
 		if verbose {
@@ -246,8 +320,28 @@ var checkSitemapCmd = &cobra.Command{
 			}
 		}
 
-		// Get verbose flag from command
+		// Get flags from command
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		githubOutput, _ := cmd.Flags().GetBool("github-output")
+
+		// Handle GitHub Actions output format
+		if githubOutput {
+			// Print workflow annotations for broken URLs
+			for _, urlPtr := range urlPointers {
+				if isBrokenLink(urlPtr.Status) {
+					printGitHubAnnotation(urlPtr.AbsoluteUrl.String(), "", urlPtr.Status)
+				}
+			}
+
+			// Write summary to GITHUB_OUTPUT if available
+			if err := writeGitHubOutput(brokenCount, len(urlPointers)); err != nil {
+				fmt.Printf("Warning: Failed to write to GITHUB_OUTPUT: %v\n", err)
+			}
+
+			// Print summary to stdout
+			fmt.Printf("Found %d broken URLs out of %d total\n", brokenCount, len(urlPointers))
+			return
+		}
 
 		// Display results based on verbose flag
 		if verbose {
