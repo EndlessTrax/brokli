@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -116,32 +117,27 @@ func TestWriteGitHubOutput(t *testing.T) {
 				output := string(content)
 
 				// Check for expected values
-				expectedBrokenCount := ""
-				expectedTotalCount := ""
-				expectedHasBrokenLinks := ""
+				expectedBrokenCount := "broken_links_count="
+				expectedTotalCount := "total_links_count="
+				expectedHasBrokenLinks := "has_broken_links="
 
-				// Using fmt.Sprintf to match the actual format
-				expectedBrokenCount = "broken_links_count="
-				expectedTotalCount = "total_links_count="
-				expectedHasBrokenLinks = "has_broken_links="
-
-				if !contains(output, expectedBrokenCount) {
+				if !strings.Contains(output, expectedBrokenCount) {
 					t.Errorf("Output missing broken_links_count field")
 				}
-				if !contains(output, expectedTotalCount) {
+				if !strings.Contains(output, expectedTotalCount) {
 					t.Errorf("Output missing total_links_count field")
 				}
-				if !contains(output, expectedHasBrokenLinks) {
+				if !strings.Contains(output, expectedHasBrokenLinks) {
 					t.Errorf("Output missing has_broken_links field")
 				}
 
 				// Verify has_broken_links value
 				if tt.brokenCount > 0 {
-					if !contains(output, "has_broken_links=true") {
+					if !strings.Contains(output, "has_broken_links=true") {
 						t.Errorf("Expected has_broken_links=true when brokenCount > 0, got: %s", output)
 					}
 				} else {
-					if !contains(output, "has_broken_links=false") {
+					if !strings.Contains(output, "has_broken_links=false") {
 						t.Errorf("Expected has_broken_links=false when brokenCount == 0, got: %s", output)
 					}
 				}
@@ -159,18 +155,4 @@ func TestWriteGitHubOutput_InvalidPath(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error when writing to invalid path, got nil")
 	}
-}
-
-// Helper function to check if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && containsSubstring(s, substr))
-}
-
-func containsSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }

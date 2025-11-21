@@ -61,7 +61,7 @@ func printGitHubAnnotation(url, text string, status int) {
 	if text != "" {
 		message = fmt.Sprintf("Link '%s' to %s returned status %d", text, url, status)
 	}
-	fmt.Printf("::%s title=%s::%s\n", annotationType, title, message)
+	fmt.Printf("::%s title=\"%s\"::%s\n", annotationType, title, message)
 }
 
 // writeGitHubOutput writes summary data to GITHUB_OUTPUT if the environment variable is set
