@@ -10,6 +10,7 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
 - `pkg/fetcher/`: HTTP operations (`GetHTML`)
 - `pkg/parser/`: HTML/XML parsing (`html.go`, `sitemap.go`)
 - `pkg/resolver/`: URL resolution logic (`ResolveAbsoluteUrl`, `IsSpecialLink`)
+- `pkg/output/`: Output formatting with interface-based design (`Formatter` interface, `DefaultFormatter`, `VerboseFormatter`, `GitHubFormatter`)
 
 **Target Use Case**: Local development workflow - developers run `brokli check url https://localhost:3000` or `brokli check sitemap https://localhost:3000/sitemap.xml` to validate links before deployment.
 
@@ -18,7 +19,8 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
 - ✅ **Concurrent HTTP Checking** - Worker pool with configurable workers (default: 10)
 - ✅ **Progress Indication** - Real-time counter with thread-safe serial callback
 - ✅ **Colored Terminal Output** - Status code coloring (green/red/cyan/yellow)
-- ✅ **Verbose Mode** - `--verbose/-v` flag to show all links vs broken only
+- ✅ **Multiple Output Formats** - `--output-format` flag with `default`, `verbose`, and `github` options
+- ✅ **GitHub Actions Integration** - Native support with workflow annotations and step outputs
 - ✅ **Smart Filtering** - Display broken links (4xx/5xx) by default
 - ✅ **URL & Sitemap Support** - Check single pages or entire sitemaps
 - ✅ **Comprehensive Testing** - 94%+ test coverage with race detection
@@ -33,7 +35,8 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
   - `pkg/fetcher`: Only HTTP fetching
   - `pkg/parser`: Only parsing (HTML/XML → data structures)
   - `pkg/resolver`: Only URL resolution
-- Import packages with descriptive names: `fetcher.GetHTML()`, `parser.ParseHTML()`, `resolver.ResolveAbsoluteUrl()`
+  - `pkg/output`: Only output formatting (interface-based design)
+- Import packages with descriptive names: `fetcher.GetHTML()`, `parser.ParseHTML()`, `resolver.ResolveAbsoluteUrl()`, `output.NewFormatter()`
 
 ### Error Handling
 - Functions return errors wrapped with context: `fmt.Errorf("failed to parse URL '%s': %w", urlStr, err)`
@@ -60,19 +63,39 @@ Brokli (a play on "broken links") is a CLI tool for checking broken links on web
 - Checker package operates on `link.AnchorTag` and `link.SitemapUrl` to set Status fields
 
 ### Output & Display
+- **Output Formatting** uses interface-based design in `pkg/output/`:
+  - `Formatter` interface defines `FormatPageResults()` and `FormatSitemapResults()`
+  - Three implementations: `DefaultFormatter`, `VerboseFormatter`, `GitHubFormatter`
+  - Factory function: `output.NewFormatter(format)` creates appropriate formatter
+  - String constants for format names: `output.FormatNameDefault`, `output.FormatNameVerbose`, `output.FormatNameGitHub`
+- **CLI Flags**:
+  - `--output-format` (or `-o`): Choose output format: `default`, `verbose`, or `github`
+  - `-v/--verbose`: Deprecated but maintained for backward compatibility, sets format to verbose
+- **Default Format** (`output.FormatDefault`):
+  - Shows only broken links (4xx/5xx status codes)
+  - Color-coded status codes
+  - Summary with count of broken links
+- **Verbose Format** (`output.FormatVerbose`):
+  - Shows all links with their status codes
+  - Includes working links (2xx) and redirects (3xx)
+  - Full summary statistics
+- **GitHub Actions Format** (`output.FormatGitHub`):
+  - Emits workflow annotations: `::error title="Broken Link (Status 404)"::Link 'text' to url returned status 404`
+  - Writes to `GITHUB_OUTPUT` environment file (if set) with secure 0600 permissions
+  - Step outputs: `broken_links_count`, `total_links_count`, `has_broken_links`
+  - Simplified text summary for stdout
 - Color-coded status using `github.com/fatih/color`:
   - Green: 2xx success codes
   - Cyan: 3xx redirect codes
   - Red: 4xx client errors
   - Bold Red: 5xx server errors
   - Yellow: -1 unchecked/error state
-- Smart filtering: By default shows only broken links (4xx/5xx)
-- Verbose mode (`--verbose/-v`): Shows all links with status codes
-- Helper functions in `cmd/check.go`:
+- Helper functions in `pkg/output/utils.go`:
   - `getStatusIcon()`: Returns emoji/symbol for status
   - `getColoredStatus()`: Returns colored status code string
   - `isBrokenLink()`: Determines if link should be displayed by default
-- Per-command flag retrieval (no global variables)
+  - `countBrokenLinks()`: Counts broken links in slice
+  - `countBrokenSitemapUrls()`: Counts broken sitemap URLs
 
 ### Testing Patterns
 - Test files mirror source files: `fetcher_test.go`, `resolver_test.go`, `html_test.go`, `sitemap_test.go`
@@ -155,6 +178,15 @@ Use VS Code launch configurations (`.vscode/launch.json`):
 2. Add tests in `resolver_test.go` with expected empty URL behavior
 3. Update integration tests in parser package if needed
 
+**Adding a new output format:**
+1. Create new formatter struct in `pkg/output/` (e.g., `JSONFormatter`)
+2. Implement the `Formatter` interface with `FormatPageResults()` and `FormatSitemapResults()` methods
+3. Add new format constant to `pkg/output/output.go` (e.g., `FormatJSON Format = "json"`, `FormatNameJSON = "json"`)
+4. Update `NewFormatter()` factory function to handle new format
+5. Add comprehensive tests in `output_test.go` for the new formatter
+6. Update CLI flag help text in `cmd/check.go` to include new format option
+7. Document the new format in README.md
+
 **Modifying data structures:**
 - Data types are in `pkg/link/link.go` - keep them pure (no business logic)
 - Add validation in constructor functions in `pkg/parser/` (e.g., `newAnchorTag`, `newSitemapUrl`)
@@ -163,6 +195,13 @@ Use VS Code launch configurations (`.vscode/launch.json`):
 **Adding colored output to new commands:**
 - Import `github.com/fatih/color` for terminal coloring
 - Define color schemes: `color.New(color.FgGreen)`, `color.New(color.FgRed, color.Bold)`
-- Use helper functions: `getStatusIcon()`, `getColoredStatus()` for consistency
+- Use helper functions from `pkg/output/utils.go`: `getStatusIcon()`, `getColoredStatus()` for consistency
 - Show summary statistics: total links, broken links, redirects
-- Follow existing pattern in `cmd/check.go` for consistent UX
+- Follow existing formatter pattern in `pkg/output/` for consistent UX
+
+**Working with output formatters:**
+- All formatters write to `io.Writer` (typically `os.Stdout`)
+- Use `output.NewFormatter(format)` factory to get appropriate formatter instance
+- Format selection logic in `cmd/check.go` uses string constants from `output` package
+- Backward compatibility: `-v` flag still sets format to verbose (deprecated pattern)
+- GitHub formatter handles `GITHUB_OUTPUT` environment variable automatically
