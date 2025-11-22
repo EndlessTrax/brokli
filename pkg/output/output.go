@@ -18,6 +18,13 @@ const (
 	FormatGitHub Format = "github"
 )
 
+// String constants for format names (for use in CLI flags and comparisons)
+const (
+	FormatNameDefault = "default"
+	FormatNameVerbose = "verbose"
+	FormatNameGitHub  = "github"
+)
+
 // Formatter is the interface for all output formatters
 type Formatter interface {
 	// FormatPageResults formats and writes the results of checking links on a page

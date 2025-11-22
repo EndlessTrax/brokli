@@ -21,8 +21,8 @@ func init() {
 	checkCmd.AddCommand(checkSitemapCmd)
 
 	// Add output-format flag to both subcommands
-	checkUrlCmd.Flags().StringP("output-format", "o", "default", "Output format: default, verbose, or github")
-	checkSitemapCmd.Flags().StringP("output-format", "o", "default", "Output format: default, verbose, or github")
+	checkUrlCmd.Flags().StringP("output-format", "o", output.FormatNameDefault, "Output format: default, verbose, or github")
+	checkSitemapCmd.Flags().StringP("output-format", "o", output.FormatNameDefault, "Output format: default, verbose, or github")
 
 	// Keep verbose flag for backward compatibility (deprecated)
 	checkUrlCmd.Flags().BoolP("verbose", "v", false, "Show all links, not just broken ones (deprecated: use --output-format=verbose)")
@@ -104,16 +104,16 @@ var checkUrlCmd = &cobra.Command{
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		// Handle backward compatibility with --verbose flag
-		if verbose && formatStr == "default" {
-			formatStr = "verbose"
+		if verbose && formatStr == output.FormatNameDefault {
+			formatStr = output.FormatNameVerbose
 		}
 
 		// Get the appropriate formatter
 		var format output.Format
 		switch formatStr {
-		case "github":
+		case output.FormatNameGitHub:
 			format = output.FormatGitHub
-		case "verbose":
+		case output.FormatNameVerbose:
 			format = output.FormatVerbose
 		default:
 			format = output.FormatDefault
@@ -187,16 +187,16 @@ var checkSitemapCmd = &cobra.Command{
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		// Handle backward compatibility with --verbose flag
-		if verbose && formatStr == "default" {
-			formatStr = "verbose"
+		if verbose && formatStr == output.FormatNameDefault {
+			formatStr = output.FormatNameVerbose
 		}
 
 		// Get the appropriate formatter
 		var format output.Format
 		switch formatStr {
-		case "github":
+		case output.FormatNameGitHub:
 			format = output.FormatGitHub
-		case "verbose":
+		case output.FormatNameVerbose:
 			format = output.FormatVerbose
 		default:
 			format = output.FormatDefault
