@@ -75,7 +75,7 @@ func writeGitHubOutput(brokenCount, totalCount int) error {
 		return nil
 	}
 
-	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open GITHUB_OUTPUT file: %w", err)
 	}

@@ -45,7 +45,7 @@ func isBrokenLink(status int) bool {
 	return status == -1 || status >= 400
 }
 
-// countBrokenLinks counts the number of broken links in a slice of AnchorTags
+// countBrokenLinks counts the number of broken links in a slice of AnchorTag pointers
 func countBrokenLinks(links []*link.AnchorTag) int {
 	count := 0
 	for _, linkPtr := range links {
@@ -56,7 +56,7 @@ func countBrokenLinks(links []*link.AnchorTag) int {
 	return count
 }
 
-// countBrokenSitemapUrls counts the number of broken URLs in a slice of SitemapUrls
+// countBrokenSitemapUrls counts the number of broken URLs in a slice of SitemapUrl pointers
 func countBrokenSitemapUrls(urls []*link.SitemapUrl) int {
 	count := 0
 	for _, urlPtr := range urls {
