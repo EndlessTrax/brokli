@@ -11,6 +11,7 @@ Brokli (a play on "broken links") is a CLI tool that helps developers validate a
 - 📊 **Progress Indication** - Real-time progress counter shows checking status
 - 🎯 **Smart Filtering** - Shows only broken links by default to reduce noise
 - 🔍 **Verbose Mode** - Optional flag to display all links with their status codes
+- 🔄 **GitHub Actions Integration** - Native support with workflow annotations and step outputs
 - ⚙️ **Configurable** - Adjust workers, timeouts, redirects, and user agent
 - 🌐 **Sitemap Support** - Check entire sitemaps with metadata display
 - 🧪 **Well Tested** - 94%+ test coverage with comprehensive test suite
@@ -80,8 +81,10 @@ Checking links... 10/10
 Show all links with their status codes:
 
 ```bash
-brokli check url https://example.com --verbose
+brokli check url https://example.com --output-format=verbose
 # or use the short flag
+brokli check url https://example.com -o verbose
+# backward compatible with the old -v flag
 brokli check url https://example.com -v
 ```
 
@@ -98,6 +101,27 @@ All Links:
 ✗ 4. [404] Missing -> https://example.com/missing
 
 Summary: 1 broken link found out of 10 total
+```
+
+### Output Formats
+
+Brokli supports multiple output formats via the `--output-format` (or `-o`) flag:
+
+- **`default`** - Shows only broken links with color-coded status (default behavior)
+- **`verbose`** - Shows all links with their status codes  
+- **`github`** - GitHub Actions compatible format with workflow annotations and step outputs
+
+**Examples:**
+
+```bash
+# Default format (broken links only)
+brokli check url https://example.com
+
+# Verbose format (all links)
+brokli check url https://example.com -o verbose
+
+# GitHub Actions format
+brokli check url https://example.com -o github
 ```
 
 ### Check a Sitemap
@@ -120,6 +144,59 @@ Broken URLs:
 
 Summary: 2 broken URLs found out of 70 total
 ```
+
+### GitHub Actions Integration
+
+Use Brokli in GitHub Actions CI/CD workflows with the `--output-format=github` flag:
+
+```bash
+brokli check url https://example.com --output-format=github
+brokli check sitemap https://example.com/sitemap.xml --output-format=github
+# Or use the short form
+brokli check url https://example.com -o github
+```
+
+This formats output specifically for GitHub Actions:
+- **Workflow Annotations**: Broken links appear as errors in the GitHub Actions UI
+- **Step Outputs**: Summary statistics are written to `GITHUB_OUTPUT` for use in downstream steps
+- **Exit Code**: Standard exit codes for CI integration
+
+**Example GitHub Actions Workflow:**
+
+```yaml
+name: Check Links
+on: [push, pull_request]
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Brokli
+        run: |
+          curl -L https://github.com/EndlessTrax/brokli/releases/latest/download/brokli_linux_amd64.tar.gz | tar xz
+          sudo mv brokli /usr/local/bin/
+      
+      - name: Check site links
+        id: check
+        run: brokli check url https://yoursite.com --output-format=github
+        continue-on-error: true
+      
+      - name: Check results
+        run: |
+          echo "Total links: ${{ steps.check.outputs.total_links_count }}"
+          echo "Broken links: ${{ steps.check.outputs.broken_links_count }}"
+          if [ "${{ steps.check.outputs.has_broken_links }}" == "true" ]; then
+            echo "⚠️ Broken links found!"
+            exit 1
+          fi
+```
+
+**Step Outputs Available:**
+- `broken_links_count` - Number of broken links found
+- `total_links_count` - Total number of links checked
+- `has_broken_links` - Boolean (`true`/`false`) indicating if any broken links were found
 
 ### Status Code Colors
 
@@ -148,6 +225,17 @@ Quick validation before deploying to production:
 # Check staging site
 brokli check sitemap https://staging.example.com/sitemap.xml -v
 ```
+
+### CI/CD Integration
+
+Automate link checking in your GitHub Actions workflow:
+
+```bash
+# In GitHub Actions workflow
+brokli check url https://example.com --output-format=github
+```
+
+See the [GitHub Actions Integration](#github-actions-integration) section for complete workflow examples.
 
 ## Roadmap
 
