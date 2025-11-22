@@ -81,8 +81,10 @@ Checking links... 10/10
 Show all links with their status codes:
 
 ```bash
-brokli check url https://example.com --verbose
+brokli check url https://example.com --output-format=verbose
 # or use the short flag
+brokli check url https://example.com -o verbose
+# backward compatible with the old -v flag
 brokli check url https://example.com -v
 ```
 
@@ -99,6 +101,27 @@ All Links:
 ✗ 4. [404] Missing -> https://example.com/missing
 
 Summary: 1 broken link found out of 10 total
+```
+
+### Output Formats
+
+Brokli supports multiple output formats via the `--output-format` (or `-o`) flag:
+
+- **`default`** - Shows only broken links with color-coded status (default behavior)
+- **`verbose`** - Shows all links with their status codes  
+- **`github`** - GitHub Actions compatible format with workflow annotations and step outputs
+
+**Examples:**
+
+```bash
+# Default format (broken links only)
+brokli check url https://example.com
+
+# Verbose format (all links)
+brokli check url https://example.com -o verbose
+
+# GitHub Actions format
+brokli check url https://example.com -o github
 ```
 
 ### Check a Sitemap
@@ -124,11 +147,13 @@ Summary: 2 broken URLs found out of 70 total
 
 ### GitHub Actions Integration
 
-Use Brokli in GitHub Actions CI/CD workflows with the `--github-output` flag:
+Use Brokli in GitHub Actions CI/CD workflows with the `--output-format=github` flag:
 
 ```bash
-brokli check url https://example.com --github-output
-brokli check sitemap https://example.com/sitemap.xml --github-output
+brokli check url https://example.com --output-format=github
+brokli check sitemap https://example.com/sitemap.xml --output-format=github
+# Or use the short form
+brokli check url https://example.com -o github
 ```
 
 This formats output specifically for GitHub Actions:
@@ -155,7 +180,7 @@ jobs:
       
       - name: Check site links
         id: check
-        run: brokli check url https://yoursite.com --github-output
+        run: brokli check url https://yoursite.com --output-format=github
         continue-on-error: true
       
       - name: Check results
@@ -207,7 +232,7 @@ Automate link checking in your GitHub Actions workflow:
 
 ```bash
 # In GitHub Actions workflow
-brokli check url https://example.com --github-output
+brokli check url https://example.com --output-format=github
 ```
 
 See the [GitHub Actions Integration](#github-actions-integration) section for complete workflow examples.
