@@ -8,7 +8,7 @@ import (
 )
 
 // Version is the version of Brokli.
-var Version = "0.2.0"
+var Version = "0.2.1"
 
 var rootCmd = &cobra.Command{
 	Use:     "brokli",
