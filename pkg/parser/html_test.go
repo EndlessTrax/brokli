@@ -9,6 +9,11 @@ import (
 	"golang.org/x/net/html"
 )
 
+const (
+	hrefAttrKey     = "href"
+	googleURLString = "https://google.com"
+)
+
 // Helper function to create HTML nodes for testing
 func createTestNode(tagName string, attributes []html.Attribute, children ...*html.Node) *html.Node {
 	node := &html.Node{
@@ -119,11 +124,11 @@ func TestFindLinks(t *testing.T) {
 	t.Run("document with multiple anchor tags", func(t *testing.T) {
 		// Create a test HTML structure with multiple anchor tags
 		link1 := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "https://example.com"},
+			{Key: hrefAttrKey, Val: "https://example.com"},
 		}, createTextNode("Link 1"))
 
 		link2 := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "/about"},
+			{Key: hrefAttrKey, Val: "/about"},
 		}, createTextNode("About"))
 
 		div := createTestNode("div", []html.Attribute{}, link1)
@@ -161,11 +166,11 @@ func TestFindLinks(t *testing.T) {
 
 	t.Run("nested anchor tags", func(t *testing.T) {
 		innerLink := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "#inner"},
+			{Key: hrefAttrKey, Val: "#inner"},
 		}, createTextNode("Inner"))
 
 		outerLink := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "#outer"},
+			{Key: hrefAttrKey, Val: "#outer"},
 		}, createTextNode("Outer"), innerLink)
 
 		body := createTestNode("body", []html.Attribute{}, outerLink)
@@ -195,11 +200,11 @@ func TestGetPageResults(t *testing.T) {
 
 	t.Run("document with valid links", func(t *testing.T) {
 		link1 := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "https://google.com"},
+			{Key: hrefAttrKey, Val: googleURLString},
 		}, createTextNode("Google"))
 
 		link2 := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "/about"},
+			{Key: hrefAttrKey, Val: "/about"},
 		}, createTextNode("About"))
 
 		body := createTestNode("body", []html.Attribute{}, link1, link2)
@@ -212,8 +217,8 @@ func TestGetPageResults(t *testing.T) {
 		}
 
 		// Check first link
-		if results.Links[0].AbsoluteUrl.String() != "https://google.com" {
-			t.Errorf("Expected first link URL to be 'https://google.com', got '%s'", results.Links[0].AbsoluteUrl.String())
+		if results.Links[0].AbsoluteUrl.String() != googleURLString {
+			t.Errorf("Expected first link URL to be '%s', got '%s'", googleURLString, results.Links[0].AbsoluteUrl.String())
 		}
 		if results.Links[0].Text != "Google" {
 			t.Errorf("Expected first link text to be 'Google', got '%s'", results.Links[0].Text)
@@ -242,15 +247,15 @@ func TestGetPageResults(t *testing.T) {
 
 	t.Run("document with special links", func(t *testing.T) {
 		mailtoLink := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "mailto:test@example.com"},
+			{Key: hrefAttrKey, Val: "mailto:test@example.com"},
 		}, createTextNode("Email"))
 
 		jsLink := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "javascript:void(0)"},
+			{Key: hrefAttrKey, Val: "javascript:void(0)"},
 		}, createTextNode("JS Link"))
 
 		fragmentLink := createTestNode("a", []html.Attribute{
-			{Key: "href", Val: "#section1"},
+			{Key: hrefAttrKey, Val: "#section1"},
 		}, createTextNode("Section"))
 
 		body := createTestNode("body", []html.Attribute{}, mailtoLink, jsLink, fragmentLink)

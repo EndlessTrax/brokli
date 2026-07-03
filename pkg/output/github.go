@@ -75,6 +75,7 @@ func writeGitHubOutput(brokenCount, totalCount int) error {
 		return nil
 	}
 
+	// #nosec G304,G703 -- GITHUB_OUTPUT is provided by the GitHub Actions runtime.
 	f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open GITHUB_OUTPUT file: %w", err)
