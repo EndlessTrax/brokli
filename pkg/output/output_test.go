@@ -11,6 +11,11 @@ import (
 	"github.com/endlesstrax/brokli/pkg/link"
 )
 
+const (
+	linkTextHome    = "Home"
+	linkTextMissing = "Missing"
+)
+
 func TestNewFormatter(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -42,7 +47,7 @@ func TestDefaultFormatter_FormatPageResults(t *testing.T) {
 		{
 			name: "all working links",
 			links: []*link.AnchorTag{
-				{Status: 200, Text: "Home", AbsoluteUrl: mustParseURL("http://example.com")},
+				{Status: 200, Text: linkTextHome, AbsoluteUrl: mustParseURL("http://example.com")},
 				{Status: 200, Text: "About", AbsoluteUrl: mustParseURL("http://example.com/about")},
 			},
 			expectedOutput: []string{"All links are working"},
@@ -50,10 +55,10 @@ func TestDefaultFormatter_FormatPageResults(t *testing.T) {
 		{
 			name: "some broken links",
 			links: []*link.AnchorTag{
-				{Status: 200, Text: "Home", AbsoluteUrl: mustParseURL("http://example.com")},
-				{Status: 404, Text: "Missing", AbsoluteUrl: mustParseURL("http://example.com/404")},
+				{Status: 200, Text: linkTextHome, AbsoluteUrl: mustParseURL("http://example.com")},
+				{Status: 404, Text: linkTextMissing, AbsoluteUrl: mustParseURL("http://example.com/404")},
 			},
-			expectedOutput: []string{"Broken Links:", "Missing", "404", "Summary: 1 broken links found"},
+			expectedOutput: []string{"Broken Links:", linkTextMissing, "404", "Summary: 1 broken links found"},
 		},
 	}
 
@@ -81,8 +86,8 @@ func TestDefaultFormatter_FormatPageResults(t *testing.T) {
 
 func TestVerboseFormatter_FormatPageResults(t *testing.T) {
 	links := []*link.AnchorTag{
-		{Status: 200, Text: "Home", AbsoluteUrl: mustParseURL("http://example.com")},
-		{Status: 404, Text: "Missing", AbsoluteUrl: mustParseURL("http://example.com/404")},
+		{Status: 200, Text: linkTextHome, AbsoluteUrl: mustParseURL("http://example.com")},
+		{Status: 404, Text: linkTextMissing, AbsoluteUrl: mustParseURL("http://example.com/404")},
 	}
 
 	var buf bytes.Buffer
@@ -96,7 +101,7 @@ func TestVerboseFormatter_FormatPageResults(t *testing.T) {
 	}
 
 	output := buf.String()
-	expectedStrings := []string{"All Links:", "Home", "Missing", "Summary:"}
+	expectedStrings := []string{"All Links:", linkTextHome, linkTextMissing, "Summary:"}
 	for _, expected := range expectedStrings {
 		if !strings.Contains(output, expected) {
 			t.Errorf("FormatPageResults() output missing expected string %q", expected)
@@ -106,8 +111,8 @@ func TestVerboseFormatter_FormatPageResults(t *testing.T) {
 
 func TestGitHubFormatter_FormatPageResults(t *testing.T) {
 	links := []*link.AnchorTag{
-		{Status: 200, Text: "Home", AbsoluteUrl: mustParseURL("http://example.com")},
-		{Status: 404, Text: "Missing", AbsoluteUrl: mustParseURL("http://example.com/404")},
+		{Status: 200, Text: linkTextHome, AbsoluteUrl: mustParseURL("http://example.com")},
+		{Status: 404, Text: linkTextMissing, AbsoluteUrl: mustParseURL("http://example.com/404")},
 	}
 
 	var buf bytes.Buffer

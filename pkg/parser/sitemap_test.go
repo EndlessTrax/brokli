@@ -6,6 +6,13 @@ import (
 	"testing"
 )
 
+const (
+	exampleRootURL = "https://www.example.com/"
+	date20230101   = "2023-01-01"
+	changeDaily    = "daily"
+	priorityHigh   = "1.0"
+)
+
 func TestParseSitemap(t *testing.T) {
 	t.Run("valid sitemap XML", func(t *testing.T) {
 		xmlContent := `<?xml version="1.0" encoding="UTF-8"?>
@@ -37,17 +44,17 @@ func TestParseSitemap(t *testing.T) {
 
 		// Check first URL
 		firstUrl := sitemap.URLs[0]
-		if firstUrl.Loc != "https://www.example.com/" {
-			t.Errorf("Expected first URL to be 'https://www.example.com/', got '%s'", firstUrl.Loc)
+		if firstUrl.Loc != exampleRootURL {
+			t.Errorf("Expected first URL to be '%s', got '%s'", exampleRootURL, firstUrl.Loc)
 		}
-		if firstUrl.LastMod != "2023-01-01" {
-			t.Errorf("Expected first URL lastmod to be '2023-01-01', got '%s'", firstUrl.LastMod)
+		if firstUrl.LastMod != date20230101 {
+			t.Errorf("Expected first URL lastmod to be '%s', got '%s'", date20230101, firstUrl.LastMod)
 		}
-		if firstUrl.ChangeFreq != "daily" {
-			t.Errorf("Expected first URL changefreq to be 'daily', got '%s'", firstUrl.ChangeFreq)
+		if firstUrl.ChangeFreq != changeDaily {
+			t.Errorf("Expected first URL changefreq to be '%s', got '%s'", changeDaily, firstUrl.ChangeFreq)
 		}
-		if firstUrl.Priority != "1.0" {
-			t.Errorf("Expected first URL priority to be '1.0', got '%s'", firstUrl.Priority)
+		if firstUrl.Priority != priorityHigh {
+			t.Errorf("Expected first URL priority to be '%s', got '%s'", priorityHigh, firstUrl.Priority)
 		}
 	})
 
@@ -124,14 +131,14 @@ func TestGetSitemapResults(t *testing.T) {
 		sitemap := &XMLSitemap{
 			URLs: []XMLURL{
 				{
-					Loc:        "https://www.example.com/",
-					LastMod:    "2023-01-01",
-					ChangeFreq: "daily",
-					Priority:   "1.0",
+					Loc:        exampleRootURL,
+					LastMod:    date20230101,
+					ChangeFreq: changeDaily,
+					Priority:   priorityHigh,
 				},
 				{
 					Loc:        "https://www.example.com/about",
-					LastMod:    "2023-01-01",
+					LastMod:    date20230101,
 					ChangeFreq: "weekly",
 					Priority:   "0.8",
 				},
@@ -150,11 +157,11 @@ func TestGetSitemapResults(t *testing.T) {
 
 		// Check first URL
 		firstUrl := results.Urls[0]
-		if firstUrl.AbsoluteUrl.String() != "https://www.example.com/" {
-			t.Errorf("Expected first URL to be 'https://www.example.com/', got '%s'", firstUrl.AbsoluteUrl.String())
+		if firstUrl.AbsoluteUrl.String() != exampleRootURL {
+			t.Errorf("Expected first URL to be '%s', got '%s'", exampleRootURL, firstUrl.AbsoluteUrl.String())
 		}
-		if firstUrl.LastMod != "2023-01-01" {
-			t.Errorf("Expected first URL lastmod to be '2023-01-01', got '%s'", firstUrl.LastMod)
+		if firstUrl.LastMod != date20230101 {
+			t.Errorf("Expected first URL lastmod to be '%s', got '%s'", date20230101, firstUrl.LastMod)
 		}
 		if firstUrl.Status != -1 {
 			t.Errorf("Expected Status -1, got %d", firstUrl.Status)
@@ -178,9 +185,9 @@ func TestGetSitemapResults(t *testing.T) {
 			URLs: []XMLURL{
 				{
 					Loc:        "://invalid-url",
-					LastMod:    "2023-01-01",
-					ChangeFreq: "daily",
-					Priority:   "1.0",
+					LastMod:    date20230101,
+					ChangeFreq: changeDaily,
+					Priority:   priorityHigh,
 				},
 			},
 		}
