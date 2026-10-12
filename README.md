@@ -1,4 +1,11 @@
-# Brokli 🥦
+> [!IMPORTANT]
+> **This project is archived and no longer maintained.**
+>
+> This repository is preserved for reference. No further features, bug fixes, security updates, or compatibility updates are planned.
+>
+> The source code remains available under its existing license. Use at your own discretion.
+>
+> # Brokli 🥦
 
 > A fast, concurrent broken link checker for websites and sitemaps
 
